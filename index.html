@@ -6,6 +6,7 @@
     <title>o2 Bundle Manager - Test Edition</title>
     <!-- Tailwind CSS laden -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         
@@ -40,7 +41,43 @@
     
     <script>
         const STORAGE_KEY = 'o2_standalone_bundles_data';
-        let bundles = []; 
+        let bundles = [];
+
+        // === AUTO-IMPORT: Screenshot -> postMessage an parent (Dashboard) ===
+        async function sendBundleScreenshotToParent() {
+            try {
+                if (typeof html2canvas !== 'function') {
+                    console.warn("html2canvas nicht verfügbar – Screenshot kann nicht erzeugt werden.");
+                    return;
+                }
+                // Besser als document.body: nur der eigentliche Inhalt
+                const target = document.querySelector('.max-w-5xl') || document.body;
+                const canvas = await html2canvas(target, {
+                    scale: 1.5,
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    logging: false
+                });
+                const dataUrl = canvas.toDataURL('image/png');
+
+                window.parent.postMessage({
+                    type: 'BUNDLE_SCREENSHOT',
+                    dataUrl
+                }, '*');
+            } catch (err) {
+                console.warn("Screenshot failed:", err);
+            }
+        }
+
+        // Antwortet auf REQUEST_BUNDLE_SCREENSHOT vom iFrame-Parent (Dashboard)
+        window.addEventListener('message', (e) => {
+            const d = e.data || {};
+            if (d && d.type === 'REQUEST_BUNDLE_SCREENSHOT') {
+                sendBundleScreenshotToParent();
+            }
+        });
+        // === /AUTO-IMPORT ===
+ 
 
         const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
 
