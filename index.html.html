@@ -3,2167 +3,423 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aktionsmappe Verwaltung (Lokal)</title>
+    <title>o2 Bundle Manager - Test Edition</title>
     <!-- Tailwind CSS laden -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Konfiguriere Tailwind für die Inter-Schriftart -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         
         body {
             font-family: 'Inter', sans-serif;
-            /* Dezenter, professioneller Verlauf */
             background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
             background-attachment: fixed; 
             color: #1e293b; 
         }
 
-        /* Custom Styling for the switch */
-        .toggle-switch input:checked + .slider {
-            background-color: #2563eb;
-        }
-        .toggle-switch input:checked + .slider:before {
-            transform: translateX(26px);
-        }
+        .toggle-switch input:checked + .slider { background-color: #2563eb; }
+        .toggle-switch input:checked + .slider:before { transform: translateX(26px); }
 
-        /* Badge Animation */
-        @keyframes pulse-badge {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-        .badge-pulse {
-            animation: pulse-badge 2s infinite;
-        }
-
-        /* Helper Klassen für Druck/Screen Umschaltung */
-        .print-only-text { display: none; }
-
-        /* --- DRUCK / PDF STYLING --- */
         @media print {
-            /* QUERFORMAT (Landscape) und A4 */
-            @page { 
-                size: A4 landscape; 
-                margin: 1.0cm; 
+            @page { size: A4 landscape; margin: 1.0cm; }
+            body { background: #fff !important; color: #000; }
+            .no-print, header button, header label, .toggle-switch, .admin-controls, #admin-view, #simple-header { display: none !important; }
+            #user-view { display: block !important; }
+            #main-header { display: none !important; }
+            .bundle-card {
+                break-inside: avoid;
+                page-break-inside: avoid;
+                border: 2px solid #1e40af;
+                box-shadow: none;
+                max-width: 100% !important;
             }
-            
-            /* Globale Resets für sauberen Vektor-Druck */
-            * {
-                -webkit-print-color-adjust: exact !important;   /* Farben drucken */
-                print-color-adjust: exact !important;
-                box-shadow: none !important;                    /* Keine Schatten (verhindert Rasterung) */
-                text-shadow: none !important;                   /* Keine Textschatten */
-                filter: none !important;                        /* Keine Filter */
-            }
-
-            body { 
-                /* WICHTIG: Reinweiß erzwingen, damit Browser nicht rastert */
-                background: #ffffff !important;
-                background-image: none !important;
-                
-                font-size: 10pt;
-                height: auto !important;
-                padding-top: 5px !important;
-                color: #000 !important;
-            }
-            
-            html {
-                background-color: #ffffff !important; 
-                height: auto !important;
-            }
-
-            /* Elemente ausblenden */
-            .no-print, 
-            .screen-only-text, 
-            #admin-view, 
-            #status-message, 
-            .toggle-switch, 
-            header button, 
-            header label, 
-            #incentive-submit-btn,
-            #submit-btn,
-            #push-submit-btn,
-            #bundle-submit-btn,
-            .admin-controls,
-            #admin-search-container,
-            #user-search-container,
-            #pdf-upload-section,
-            #visit-counter-display,
-            #data-backup-section,
-            #email-update-btn,
-            #single-view-back-btn { 
-                display: none !important; 
-            }
-            
-            /* Elemente einblenden */
-            .print-only-text {
-                display: inline-block !important;
-            }
-
-            /* --- SEITE 1: HEADER & INCENTIVES --- */
-
-            header {
-                border-bottom: 2px solid #2563eb;
-                margin-bottom: 10px !important; 
-                padding: 0 !important;
-                text-align: center !important; 
-                background: transparent !important; 
-            }
-            
-            header .header-content {
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important; 
-                width: 100%;
-                padding-bottom: 5px;
-            }
-
-            header h1 {
-                font-size: 16pt !important;
-                color: #000 !important;
-                margin: 0 !important;
-            }
-            header h1 span.screen-only-text { display: none !important; }
-            
-            .hetec-logo {
-                background-color: transparent !important;
-                color: #1d4ed8 !important;
-                border: none !important;
-                font-size: 14pt !important;
-                margin-right: 15px !important;
-            }
-
-            /* Haupttitel "Aktionen und Incentives" */
-            #user-view h2.text-3xl {
-                font-size: 14pt !important;
-                margin-bottom: 10px !important;
-                margin-top: 0 !important;
-            }
-
-            /* Push Provisionen Liste (Seite 1) */
-            #user-push-list {
-                display: flex !important;
-                flex-wrap: wrap;
-                gap: 8px !important;
-                margin-bottom: 10px !important;
-                justify-content: flex-start !important; 
-            }
-            #user-push-list > div {
-                width: 48% !important; 
-                padding: 6px !important;
-                border: 1px solid #999;
-                background: white !important; 
-                page-break-inside: avoid !important;
-            }
-            #user-push-list img { width: 25px !important; height: 25px !important; }
-            #user-push-list h4 { font-size: 10pt !important; margin: 0 !important; }
-
-            /* Incentives Liste (Seite 1) */
-            #user-incentive-list {
-                display: flex !important;
-                flex-wrap: wrap;
-                gap: 8px !important;
-                margin-bottom: 10px !important;
-                justify-content: flex-start !important; 
-            }
-            #user-incentive-list > div {
-                width: 48% !important;
-                padding: 6px !important;
-                border: 1px solid #999;
-                background: white !important;
-                page-break-inside: avoid !important;
-            }
-            #user-incentive-list img { width: 35px !important; height: 35px !important; }
-            #user-incentive-list h4 { font-size: 10pt !important; margin-bottom: 2px; }
-            #user-incentive-list p { font-size: 9pt !important; }
-
-            /* --- SEITE 2: GERÄTE-AKTIONEN & TOC --- */
-            
-            #device-actions-header {
-                break-before: page !important;
-                page-break-before: always !important;
-                margin-top: 20px !important; 
-                display: block !important;
-                font-size: 16pt !important;
-                color: #1d4ed8 !important;
-                border-bottom: 2px solid #1d4ed8 !important;
-                padding-bottom: 5px !important;
-            }
-            
-            /* TOC direkt darunter auf Seite 2 */
-            #toc-container {
-                padding: 10px !important;
-                background: white !important;
-                margin-bottom: 20px !important; 
-                border: 1px solid #ccc;
-                border-radius: 8px;
-                text-align: center !important; 
-                break-before: avoid !important;
-                page-break-before: avoid !important;
-                width: 90% !important;
-                margin-left: 5% !important;
-                margin-right: 5% !important;
-            }
-            
-            #toc-container h3 { font-size: 11pt !important; margin-bottom: 6px !important; }
-            #toc-container .grid { display: flex !important; flex-wrap: wrap; gap: 5px !important; justify-content: center !important; }
-            
-            /* WICHTIG: Links im Druck optimieren */
-            #toc-container a {
-                border: 1px solid #999; 
-                background: transparent !important; 
-                padding: 3px 6px !important;
-                font-size: 9pt !important;
-                text-decoration: none !important;
-                color: #000 !important;
-                display: inline-block !important; 
-                /* Erzwingt Text-Selektierbarkeit */
-                user-select: text !important;
-                -webkit-user-select: text !important;
-            }
-
-            /* BUNDLES LISTE (Seite 2 nach TOC) */
-            #user-bundle-list {
-                display: block !important;
-                width: 100% !important;
-                margin-bottom: 20px !important;
-                break-before: auto !important; /* Kein harter Umbruch vor Bundles zwingend, aber oft besser */
-            }
-            #user-bundle-list > div {
-                border: 2px solid #000;
-                background: #fff !important;
-                page-break-inside: avoid !important;
-                margin-bottom: 10px !important;
-            }
-
-            /* --- KACHELN / INHALT (AB SEITE 3 oder nach TOC/Bundles) --- */
-            
-            #user-view-content {
-                margin-top: 10px !important; 
-            }
-            
-            #user-view-content .grid {
-                display: block !important; 
-                text-align: left !important; 
-            }
-            
-            #user-view-content .grid > div {
-                display: inline-block !important;
-                width: 32% !important; 
-                margin-right: 1% !important;
-                margin-bottom: 15px !important;
-                vertical-align: top !important;
-                break-inside: avoid !important;
-                page-break-inside: avoid !important;
-                border: 1px solid #999 !important;
-                background: white !important;
-            }
-            
-            #user-view-content .page-break-after-3 {
-                break-after: page !important;
-                page-break-after: always !important;
-            }
-
-            /* Diverse Abstände & Größen für Druck */
-            .mt-10 { margin-top: 15px !important; }
-            .pt-4 { padding-top: 5px !important; }
-            .mb-6, .mb-12 { margin-bottom: 10px !important; }
-            h3.text-3xl { 
-                font-size: 13pt !important; 
-                border-bottom: 1px solid #2563eb; 
-                padding-bottom: 5px; 
-                text-align: left !important;
-                margin-top: 15px !important;
-            }
-            .relative.h-48 { height: 110px !important; padding: 5px !important; } 
-            .p-5 { padding: 6px !important; }
-            h2.text-2xl { font-size: 11pt !important; }
-            .text-xs { font-size: 8pt !important; }
-            .space-y-2 { margin-bottom: 3px !important; }
-            
-            #user-pdf-container:not(.hidden) {
-                break-before: page;
-                display: block !important;
-            }
-            #user-pdf-container.hidden { display: none !important; }
-            div:empty { display: none !important; }
-            
-            /* Wenn Einzelansicht aktiv ist (hidden-on-single), im Druck auch ausblenden */
-            .hidden-on-single { display: none !important; }
         }
+
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
     
-    <!-- Script für Lokale Logik -->
     <script>
-        // --- KONFIGURATION & STATE ---
-        const STORAGE_KEY_PROMOTIONS = 'am_promotions_data';
-        const STORAGE_KEY_INCENTIVES = 'am_incentives_data';
-        const STORAGE_KEY_PUSH = 'am_push_data';
-        const STORAGE_KEY_BUNDLES = 'am_bundles_data'; 
-        const STORAGE_KEY_VISITS = 'am_visits_data';
-        const STORAGE_KEY_PDF = 'am_pdf_file_data';
-        const STORAGE_KEY_CHANGES = 'am_recent_changes'; 
-        
-        const UPLOADED_PDF_FILE = {
-            contentFetchId: "uploaded:Aktionsmappe Neu 12.2025.pdf",
-            fileName: "Aktionsmappe Neu 12.2025.pdf"
-        };
-
-        let promotions = [];
-        let incentives = [];
-        let pushProvisions = []; 
+        const STORAGE_KEY = 'o2_standalone_bundles_data';
         let bundles = []; 
-        let recentChanges = [];
-        let pdfData = null; 
-        
-        const predefinedProviders = ['o2', 'HeTec', 'GreenMnky', 'Freiertext'];
 
-        const generateId = () => {
-            return Date.now().toString(36) + Math.random().toString(36).substr(2);
-        };
+        const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
 
-        // --- DATEN LADE/SPEICHER LOGIK ---
+        // TEST-DATEN INITIALISIERUNG
+        function initTestBundle() {
+            const testBundle = {
+                id: "test-bundle-123",
+                titel: "Phone 17 Pro Max 256GB + Watch Ultra 3",
+                tarifName: "o2 Mobile M",
+                angebotspreis: "89,97",
+                optionOnlineSchutz: true,
+                optionTV: true,
+                optionCustom: "",
+                images: [
+                    "data:image/jpeg;base64,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",
+                    "data:image/jpeg;base64,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"
+                ],
+                shopLink: "",
+                gutscheincode: "oc-i17wuw12-3",
+                rechnungsweg: "Angebotsdetails:\n- Phone 17 Pro Max 256GB\n- Watch Ultra 3\n- inkl. online Schutz und o2 TV\n- online to offline",
+                start: new Date().toISOString().split('T')[0], // Heute
+                end: getFridayDate(), // Diesen Freitag
+                createdAt: new Date().toISOString()
+            };
 
-        async function loadData() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            if (!data || JSON.parse(data).length === 0) {
+                bundles = [testBundle];
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(bundles));
+            }
+        }
+
+        function getFridayDate() {
+            const d = new Date();
+            const day = d.getDay();
+            const diff = (day <= 5) ? (5 - day) : (5 - day + 7);
+            d.setDate(d.getDate() + diff);
+            return d.toISOString().split('T')[0];
+        }
+
+        function loadData() {
+            initTestBundle();
             try {
-                const pData = localStorage.getItem(STORAGE_KEY_PROMOTIONS);
-                const iData = localStorage.getItem(STORAGE_KEY_INCENTIVES);
-                const pushData = localStorage.getItem(STORAGE_KEY_PUSH);
-                const bundleData = localStorage.getItem(STORAGE_KEY_BUNDLES);
-                let pdfLocal = localStorage.getItem(STORAGE_KEY_PDF);
-                const changesData = localStorage.getItem(STORAGE_KEY_CHANGES);
-
-                if (!pdfLocal) {
-                    try {
-                        const response = await fetch(`data/${UPLOADED_PDF_FILE.contentFetchId}`);
-                        if (response.ok) {
-                            const blob = await response.blob();
-                            const base64 = await new Promise((resolve) => {
-                                const reader = new FileReader();
-                                reader.onloadend = () => resolve(reader.result);
-                                reader.readAsDataURL(blob);
-                            });
-                            const newPdfData = {
-                                name: UPLOADED_PDF_FILE.fileName,
-                                data: base64,
-                                date: new Date().toLocaleDateString()
-                            };
-                            localStorage.setItem(STORAGE_KEY_PDF, JSON.stringify(newPdfData));
-                            pdfLocal = JSON.stringify(newPdfData);
-                            showMessage("Hochgeladene PDF-Datei automatisch geladen.");
-                        }
-                    } catch (e) {
-                        console.warn("Konnte hochgeladene PDF nicht automatisch laden.", e);
-                    }
-                }
-                
-                promotions = pData ? JSON.parse(pData) : [];
-                incentives = iData ? JSON.parse(iData) : [];
-                bundles = bundleData ? JSON.parse(bundleData) : [];
-                recentChanges = changesData ? JSON.parse(changesData) : [];
-                
-                pushProvisions = pushData ? JSON.parse(pushData).map(p => {
-                    if (!p.betrag && typeof p.titel === 'string' && p.titel.includes('€')) {
-                        const numericPart = parseFloat(p.titel.replace('€', '').trim());
-                        return {
-                            ...p,
-                            titel: 'Zusatz-Push',
-                            betrag: isNaN(numericPart) ? 0 : numericPart,
-                        };
-                    }
-                    p.betrag = p.betrag ? parseFloat(p.betrag) : 0;
-                    return p;
-                }) : [];
-                pdfData = pdfLocal ? JSON.parse(pdfLocal) : null;
-                
-                promotions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                incentives.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                pushProvisions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                const data = localStorage.getItem(STORAGE_KEY);
+                bundles = data ? JSON.parse(data) : [];
                 bundles.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-                // CHECK FOR BUNDLE ID IN URL (DEEP LINKING)
+                
                 const urlParams = new URLSearchParams(window.location.search);
                 const bundleId = urlParams.get('bundleId');
-                
                 if(bundleId) {
-                    // Activate Single View Mode
                     renderSingleBundleView(bundleId);
                 } else {
                     refreshUI();
                 }
-
-            } catch (e) {
-                console.error("Fehler beim Laden der lokalen Daten", e);
-                showMessage("Fehler beim Laden der Daten", true);
-            }
+            } catch (e) { console.error(e); }
         }
 
         function saveData() {
-            try {
-                localStorage.setItem(STORAGE_KEY_PROMOTIONS, JSON.stringify(promotions));
-                localStorage.setItem(STORAGE_KEY_INCENTIVES, JSON.stringify(incentives));
-                localStorage.setItem(STORAGE_KEY_PUSH, JSON.stringify(pushProvisions));
-                localStorage.setItem(STORAGE_KEY_BUNDLES, JSON.stringify(bundles));
-                refreshUI();
-            } catch (e) {
-                console.error("Fehler beim Speichern", e);
-                showMessage("Speicherfehler (Speicher voll?)", true);
-            }
-        }
-
-        // --- UPDATE / EMAIL LOGIK ---
-
-        function addRecentChange(text) {
-            recentChanges.push(text);
-            localStorage.setItem(STORAGE_KEY_CHANGES, JSON.stringify(recentChanges));
-            refreshUI(); 
-        }
-
-        function sendUpdateEmail() {
-            if (recentChanges.length === 0) {
-                showMessage("Keine gespeicherten Änderungen zum Versenden.", true);
-                return;
-            }
-            const subject = encodeURIComponent("News in der Aktionsmappe");
-            const bodyContent = "Hallo Zusammen,\n\nhier sind die neuesten Updates aus der Aktionsmappe:\n\n" + 
-                                recentChanges.map(c => "- " + c).join("\n") + 
-                                "\n\nBitte prüft die aktuelle Mappe für Details.\n\nViele Grüße";
-            const body = encodeURIComponent(bodyContent);
-            window.location.href = `mailto:?subject=${subject}&body=${body}`;
-            setTimeout(() => {
-                if(confirm("Hat sich das E-Mail Fenster geöffnet? Sollen die Änderungen nun aus der Liste 'ungesendet' entfernt werden?")) {
-                    recentChanges = [];
-                    localStorage.removeItem(STORAGE_KEY_CHANGES);
-                    refreshUI();
-                    showMessage("Änderungsliste zurückgesetzt.");
-                }
-            }, 1000);
-        }
-
-        function updateEmailButtonBadge() {
-            const badge = document.getElementById('email-badge');
-            if (recentChanges.length > 0) {
-                badge.textContent = recentChanges.length;
-                badge.classList.remove('hidden');
-                badge.classList.add('badge-pulse');
-            } else {
-                badge.classList.add('hidden');
-                badge.classList.remove('badge-pulse');
-            }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(bundles));
+            refreshUI();
         }
 
         function refreshUI() {
-            if (typeof filterAdminPromotions === 'function') filterAdminPromotions(); 
-            if (typeof renderAdminIncentiveList === 'function') renderAdminIncentiveList(incentives);
-            if (typeof renderAdminPushList === 'function') renderAdminPushList(pushProvisions); 
-            if (typeof renderAdminBundleList === 'function') renderAdminBundleList(bundles); 
-            
-            const userSearchInput = document.getElementById('user-search');
-            if (userSearchInput && userSearchInput.value) {
-                if (typeof handleUserSearch === 'function') handleUserSearch(); 
-            } else {
-                if (typeof renderUserView === 'function') renderUserView(promotions, incentives, pushProvisions, bundles);
-            }
-
-            if (typeof renderPdfView === 'function') renderPdfView(); 
-            updateEmailButtonBadge();
+            renderAdminList();
+            renderUserView(bundles);
         }
-
-        // --- SINGLE BUNDLE LINKING LOGIC (NEU) ---
-        function renderSingleBundleView(bundleId) {
-            // Ensure User view is active, Admin hidden
-            document.getElementById('admin-view').classList.add('hidden');
-            document.getElementById('user-view').classList.remove('hidden');
-            document.getElementById('view-toggle').checked = false;
-            document.getElementById('view-name').textContent = 'Einzelansicht';
-            
-            // Hide standard User View elements (using a class helper logic)
-            document.getElementById('toc-container').classList.add('hidden-on-single', 'hidden');
-            document.getElementById('user-push-list').parentElement.classList.add('hidden-on-single', 'hidden');
-            document.getElementById('user-incentive-list').parentElement.classList.add('hidden-on-single', 'hidden');
-            document.getElementById('device-actions-header').classList.add('hidden-on-single', 'hidden');
-            document.getElementById('user-view-content').classList.add('hidden-on-single', 'hidden');
-            document.getElementById('user-pdf-container').classList.add('hidden-on-single', 'hidden');
-            
-            // Header controls adjustments for single view
-            document.querySelector('.toggle-switch').style.display = 'none'; // Hide Admin switch
-            document.getElementById('user-search-container').style.display = 'none'; // Hide Search
-
-            // Find Bundle
-            const bundle = bundles.find(b => b.id === bundleId);
-            const bundleListEl = document.getElementById('user-bundle-list');
-            const bundleHeaderEl = document.getElementById('bundle-section-header');
-            
-            // Show Back Button
-            const backBtn = document.createElement('button');
-            backBtn.id = 'single-view-back-btn';
-            backBtn.textContent = '← Zurück zur Übersicht';
-            backBtn.className = 'mb-6 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition font-semibold';
-            backBtn.onclick = () => {
-                // Remove ID from URL without reload
-                const url = new URL(window.location);
-                url.searchParams.delete('bundleId');
-                window.history.pushState({}, '', url);
-                window.location.reload(); // Reload to restore full state cleanly
-            };
-            
-            // Insert Back Button before Title
-            const titleContainer = document.querySelector('#user-view h2').parentElement;
-            titleContainer.insertBefore(backBtn, titleContainer.firstChild);
-
-            if (bundle) {
-                 // Render ONLY this bundle
-                 renderUserView([], [], [], [bundle]); // Helper to use existing render logic but only for this bundle
-                 bundleListEl.classList.remove('hidden');
-                 bundleHeaderEl.classList.remove('hidden');
-                 bundleHeaderEl.querySelector('h3').textContent = "Ihre Auswahl:";
-            } else {
-                bundleListEl.innerHTML = '<div class="p-8 bg-red-100 text-red-700 rounded-lg text-center font-bold">Angebot nicht gefunden oder abgelaufen.</div>';
-                bundleListEl.classList.remove('hidden');
-            }
-        }
-
-        window.copyBundleLink = (id) => {
-            const baseUrl = window.location.href.split('?')[0];
-            const link = `${baseUrl}?bundleId=${id}`;
-            navigator.clipboard.writeText(link).then(() => {
-                showMessage("🔗 Direkt-Link in Zwischenablage kopiert!");
-            }, (err) => {
-                console.error('Copy failed', err);
-                prompt("Kopieren fehlgeschlagen. Hier ist der Link:", link);
-            });
-        };
-
-        // --- PDF LOGIK ---
-        // (Unverändert)
-        window.handlePdfUpload = (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-            if (file.type !== 'application/pdf') {
-                showMessage("Bitte nur PDF-Dateien auswählen!", true);
-                return;
-            }
-            if (file.size > 5 * 1024 * 1024) {
-                if(!confirm("Die Datei ist größer als 5MB. Das Speichern im Browser könnte fehlschlagen. Trotzdem versuchen?")) return;
-            }
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64 = e.target.result;
-                const newPdfData = { name: file.name, data: base64, date: new Date().toLocaleDateString() };
-                try {
-                    localStorage.setItem(STORAGE_KEY_PDF, JSON.stringify(newPdfData));
-                    pdfData = newPdfData;
-                    renderPdfView();
-                    showMessage("PDF erfolgreich gespeichert!");
-                } catch (err) {
-                    console.error(err);
-                    showMessage("Fehler: PDF zu groß für den lokalen Speicher!", true);
-                }
-            };
-            reader.readAsDataURL(file);
-        };
-
-        window.deletePdf = () => {
-            if(!confirm("Möchten Sie das gespeicherte PDF wirklich löschen?")) return;
-            localStorage.removeItem(STORAGE_KEY_PDF);
-            pdfData = null;
-            renderPdfView();
-            document.getElementById('pdf-upload-input').value = '';
-            showMessage("PDF gelöscht.");
-        };
-
-        function renderPdfView() {
-            const containerUser = document.getElementById('user-pdf-container');
-            const containerAdmin = document.getElementById('admin-pdf-preview');
-            const statusLabel = document.getElementById('pdf-status-label');
-
-            if (!pdfData) {
-                const noPdfHtml = '<p class="text-gray-400 italic">Keine PDF-Übersicht hinterlegt.</p>';
-                if(containerUser) { containerUser.innerHTML = ''; containerUser.classList.add('hidden'); }
-                if(containerAdmin) containerAdmin.innerHTML = noPdfHtml;
-                if(statusLabel) statusLabel.textContent = "Kein PDF ausgewählt";
-                return;
-            }
-            if(statusLabel) statusLabel.textContent = `Aktuelles PDF: ${pdfData.name} (vom ${pdfData.date})`;
-            const embedHtml = `
-                <div class="mt-4 border-t-4 border-gray-800 bg-white rounded-xl shadow-lg p-4 break-before-page">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-bold text-gray-800">📄 Aktionsübersicht (PDF)</h3>
-                        <span class="text-xs text-gray-500">${pdfData.name}</span>
-                    </div>
-                    <object data="${pdfData.data}" type="application/pdf" width="100%" height="800px" class="rounded border border-gray-200">
-                        <p>Ihr Browser kann dieses PDF nicht direkt anzeigen. <a href="${pdfData.data}" download="${pdfData.name}" class="text-blue-600 underline">Hier klicken zum Download</a>.</p>
-                    </object>
-                </div>
-            `;
-            if(containerUser) { containerUser.innerHTML = embedHtml; containerUser.classList.remove('hidden'); }
-            if(containerAdmin) containerAdmin.innerHTML = embedHtml;
-        }
-
-        // --- FILTER FUNKTIONEN (ADMIN & USER) ---
-        function filterAdminPromotions() {
-            const searchInput = document.getElementById('admin-search');
-            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-            let filteredList = promotions;
-            if (searchTerm) {
-                filteredList = promotions.filter(p => 
-                    (p.geraetebezeichnung && p.geraetebezeichnung.toLowerCase().includes(searchTerm)) ||
-                    (p.anbieter && p.anbieter.toLowerCase().includes(searchTerm))
-                );
-            }
-            renderAdminPromotionList(filteredList);
-        }
-
-        function handleUserSearch() {
-            const searchInput = document.getElementById('user-search');
-            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-
-            if (!searchTerm) {
-                renderUserView(promotions, incentives, pushProvisions, bundles);
-                return;
-            }
-
-            const filteredPromotions = promotions.filter(p => 
-                (p.geraetebezeichnung && p.geraetebezeichnung.toLowerCase().includes(searchTerm)) ||
-                (p.anbieter && p.anbieter.toLowerCase().includes(searchTerm)) ||
-                (p.bemerkung && p.bemerkung.toLowerCase().includes(searchTerm))
-            );
-            const filteredIncentives = incentives.filter(i => 
-                (i.titel && i.titel.toLowerCase().includes(searchTerm)) ||
-                (i.bemerkung && i.bemerkung.toLowerCase().includes(searchTerm))
-            );
-            const filteredPush = pushProvisions.filter(p => 
-                (p.titel && p.titel.toLowerCase().includes(searchTerm)) ||
-                (p.bemerkung && p.bemerkung.toLowerCase().includes(searchTerm))
-            );
-            const filteredBundles = bundles.filter(b =>
-                (b.titel && b.titel.toLowerCase().includes(searchTerm)) ||
-                (b.rechnungsweg && b.rechnungsweg.toLowerCase().includes(searchTerm))
-            );
-
-            renderUserView(filteredPromotions, filteredIncentives, filteredPush, filteredBundles);
-        }
-
-        // --- BESUCHER TRACKING ---
-        const trackAndDisplayVisits = () => {
-            const today = new Date();
-            const currentMonthYear = `${today.getFullYear()}-${today.getMonth() + 1}`;
-            let visitsData = { count: 0, monthYear: currentMonthYear };
-            const storedVisits = localStorage.getItem(STORAGE_KEY_VISITS);
-            if (storedVisits) {
-                try {
-                    const parsed = JSON.parse(storedVisits);
-                    if (parsed.monthYear === currentMonthYear) { visitsData = parsed; } 
-                    else { visitsData.monthYear = currentMonthYear; visitsData.count = 0; }
-                } catch(e) {}
-            }
-            visitsData.count++;
-            localStorage.setItem(STORAGE_KEY_VISITS, JSON.stringify(visitsData));
-            document.getElementById('visit-counter-display').textContent = `Besuche diesen Monat: ${visitsData.count}`;
-        };
-
-        // --- HELPER FUNKTIONEN ---
-        const calculateMargin = (einkauf, verkauf, noEK, noVK) => {
-            if (noEK || noVK) return null; 
-            const e = parseFloat(einkauf);
-            const v = parseFloat(verkauf);
-            if (isNaN(e) || isNaN(v)) return 'N/A';
-            return ((v / 1.19) - e).toFixed(2);
-        };
-
-        const showMessage = (message, isError = false) => {
-            const msgEl = document.getElementById('status-message');
-            msgEl.textContent = message;
-            msgEl.className = `p-3 mb-4 rounded-lg text-white ${isError ? 'bg-red-500' : 'bg-green-500'}`;
-            msgEl.classList.remove('hidden');
-            setTimeout(() => msgEl.classList.add('hidden'), 3000);
-        };
 
         const isExpired = (endDateStr) => {
             if (!endDateStr) return true; 
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const [year, month, day] = endDateStr.split('-').map(Number);
-            const endDate = new Date(Date.UTC(year, month - 1, day));
-            return endDate < today;
+            return new Date(Date.UTC(year, month - 1, day)) < today;
         };
 
-        const formatCurrencyInput = (input) => {
-            let val = input.value.trim();
-            if (!val || val.includes('€')) return;
-            if (/\d/.test(val)) {
-                input.value = val + ' €';
-            }
+        const showMessage = (msg) => {
+            const el = document.getElementById('status-msg');
+            el.textContent = msg;
+            el.classList.remove('opacity-0');
+            setTimeout(() => el.classList.add('opacity-0'), 3000);
         };
 
-        window.exportToPdf = () => {
-            setTimeout(() => {
-                window.print();
-            }, 100);
+        window.copyToClipboard = (text) => {
+            navigator.clipboard.writeText(text).then(() => showMessage("Kopiert!"));
         };
 
-        window.togglePriceInput = (type, isChecked) => {
-            const input = document.getElementById(type === 'EK' ? 'einkaufspreis' : 'verkaufspreis');
-            if (isChecked) {
-                input.value = '';
-                input.disabled = true;
-                input.classList.add('bg-gray-100');
-            } else {
-                input.disabled = false;
-                input.classList.remove('bg-gray-100');
-            }
-            const eEl = document.getElementById('einkaufspreis');
-            const vEl = document.getElementById('verkaufspreis');
-            const margePreviewEl = document.getElementById('marge-preview');
-            if (eEl.disabled || vEl.disabled) {
-                margePreviewEl.textContent = 'Marge: -';
-                margePreviewEl.className = 'text-gray-400 font-semibold text-lg';
-            } else {
-                const e = parseFloat(eEl.value);
-                const v = parseFloat(vEl.value);
-                if (!isNaN(e) && !isNaN(v)) {
-                    const m = ((v / 1.19) - e);
-                    margePreviewEl.textContent = `Vorschau Marge (Netto): ${m.toFixed(2)} €`;
-                    margePreviewEl.className = `font-semibold ${m >= 0 ? 'text-green-600' : 'text-red-600'}`;
-                } else {
-                    margePreviewEl.textContent = '';
-                }
-            }
-        };
-
-        // --- BACKUP LOGIK ---
-        window.exportData = () => {
-            const dataToExport = {
-                promotions: promotions,
-                incentives: incentives,
-                pushProvisions: pushProvisions,
-                bundles: bundles 
-            };
-            const jsonString = JSON.stringify(dataToExport, null, 2);
-            const blob = new Blob([jsonString], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `aktionsmappe_backup_${new Date().toISOString().slice(0, 10)}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showMessage("Daten erfolgreich als JSON exportiert.");
-        };
-
-        window.importData = (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
-                showMessage("Bitte wählen Sie eine gültige JSON-Backup-Datei.", true);
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const parsedData = JSON.parse(e.target.result);
-                    if (!parsedData.promotions || !parsedData.incentives) {
-                         showMessage("Fehler: Die JSON-Datei hat nicht die erwartete Struktur.", true);
-                         return;
-                    }
-                    localStorage.setItem(STORAGE_KEY_PROMOTIONS, JSON.stringify(parsedData.promotions));
-                    localStorage.setItem(STORAGE_KEY_INCENTIVES, JSON.stringify(parsedData.incentives));
-                    localStorage.setItem(STORAGE_KEY_PUSH, JSON.stringify(parsedData.pushProvisions || []));
-                    localStorage.setItem(STORAGE_KEY_BUNDLES, JSON.stringify(parsedData.bundles || [])); 
-                    loadData();
-                    showMessage(`Daten von Backup-Datei erfolgreich wiederhergestellt!`);
-                } catch (err) {
-                    console.error("Import Fehler:", err);
-                    showMessage("Fehler beim Parsen der JSON-Datei. Ist sie beschädigt?", true);
-                }
-            };
-            reader.readAsText(file);
-        };
-
-
-        // --- CRUD ACTIONS (BUNDLES) ---
-        
         window.addBundleImageField = (value = '') => {
             const container = document.getElementById('bundle-images-container');
             const wrapper = document.createElement('div');
-            wrapper.className = 'flex gap-2 items-center';
-            const input = document.createElement('input');
-            input.type = 'url';
-            input.value = value;
-            input.placeholder = 'https://beispiel.de/bild.jpg';
-            input.className = 'block w-full rounded-md border-gray-300 shadow-sm p-2 border flex-grow';
-            const removeBtn = document.createElement('button');
-            removeBtn.type = 'button';
-            removeBtn.innerHTML = '🗑️';
-            removeBtn.className = 'bg-red-100 text-red-600 px-3 py-2 rounded hover:bg-red-200 transition';
-            removeBtn.onclick = () => wrapper.remove();
-            wrapper.appendChild(input);
-            wrapper.appendChild(removeBtn);
+            wrapper.className = 'flex gap-2 items-center mb-2';
+            wrapper.innerHTML = `
+                <input type="url" value="${value}" placeholder="Bild-URL oder Base64" class="block w-full rounded-md border-gray-300 shadow-sm p-2 border flex-grow">
+                <button type="button" onclick="this.parentElement.remove()" class="bg-red-100 text-red-600 px-3 py-2 rounded hover:bg-red-200">🗑️</button>
+            `;
             container.appendChild(wrapper);
         };
 
         window.saveBundle = (event) => {
             event.preventDefault();
             const form = event.target;
-            
             const imageInputs = document.querySelectorAll('#bundle-images-container input');
-            const imagesArray = Array.from(imageInputs).map(input => input.value.trim()).filter(url => url.length > 0);
+            const imagesArray = Array.from(imageInputs).map(i => i.value.trim()).filter(u => u.length > 0);
 
             const data = {
                 id: form.dataset.editingId || generateId(),
-                titel: form.bundleTitel.value,
-                // NEUE FELDER
-                tarifName: form.bundleTarifName.value,
-                angebotspreis: form.bundlePreis.value,
-                optionOnlineSchutz: form.bundleOptionOnlineSchutz.checked,
-                optionTV: form.bundleOptionTV.checked,
-                optionCustom: form.bundleOptionCustom.value,
-                // ENDE NEUE FELDER
+                titel: form.titel.value,
+                tarifName: form.tarifName.value,
+                angebotspreis: form.preis.value,
+                optionOnlineSchutz: form.optOnlineSchutz.checked,
+                optionTV: form.optTV.checked,
+                optionCustom: form.optCustom.value,
                 images: imagesArray,
-                shopLink: form.bundleShopLink.value, // NEU: Link speichern
-                gutscheincode: form.bundleGutschein.value,
-                rechnungsweg: form.bundleRechnungsweg.value, 
-                start: form.bundleStart.value,
-                end: form.bundleEnd.value,
+                shopLink: form.shopLink.value,
+                gutscheincode: form.gutscheincode.value,
+                rechnungsweg: form.rechnungsweg.value,
+                start: form.start.value,
+                end: form.end.value,
                 createdAt: form.dataset.editingId ? (bundles.find(b => b.id === form.dataset.editingId)?.createdAt || new Date().toISOString()) : new Date().toISOString()
             };
-
-            if(!form.dataset.editingId) {
-                addRecentChange(`📦 Neues Bundle: ${data.titel}`);
-            }
 
             if (form.dataset.editingId) {
                 const index = bundles.findIndex(b => b.id === form.dataset.editingId);
                 if (index !== -1) bundles[index] = data;
-                showMessage("Bundle aktualisiert!");
             } else {
                 bundles.push(data);
-                showMessage("Bundle gespeichert!");
             }
 
             saveData();
             form.reset();
             delete form.dataset.editingId;
-            document.getElementById('bundle-submit-btn').textContent = 'Bundle Speichern';
+            document.getElementById('form-submit-btn').textContent = 'Bundle Speichern';
             document.getElementById('bundle-images-container').innerHTML = '';
-            addBundleImageField(); 
-        };
-
-        window.deleteBundle = (id) => {
-            if (!confirm('Wirklich löschen?')) return;
-            bundles = bundles.filter(b => b.id !== id);
-            saveData();
-            showMessage("Bundle gelöscht.");
+            addBundleImageField();
         };
 
         window.editBundle = (id) => {
             const data = bundles.find(b => b.id === id);
             if (!data) return;
-
             const form = document.getElementById('bundle-form');
-            form.bundleTitel.value = data.titel || '';
-            // NEUE FELDER Populate
-            form.bundleTarifName.value = data.tarifName || '';
-            form.bundlePreis.value = data.angebotspreis || '';
-            form.bundleOptionOnlineSchutz.checked = !!data.optionOnlineSchutz;
-            form.bundleOptionTV.checked = !!data.optionTV;
-            form.bundleOptionCustom.value = data.optionCustom || '';
-            
+            form.titel.value = data.titel;
+            form.tarifName.value = data.tarifName || '';
+            form.preis.value = data.angebotspreis || '';
+            form.optOnlineSchutz.checked = !!data.optionOnlineSchutz;
+            form.optTV.checked = !!data.optionTV;
+            form.optCustom.value = data.optionCustom || '';
+            form.shopLink.value = data.shopLink || '';
+            form.gutscheincode.value = data.gutscheincode || '';
+            form.rechnungsweg.value = data.rechnungsweg || '';
+            form.start.value = data.start;
+            form.end.value = data.end;
             const container = document.getElementById('bundle-images-container');
             container.innerHTML = '';
-            if (data.images && data.images.length > 0) {
-                data.images.forEach(url => addBundleImageField(url));
-            } else {
-                addBundleImageField(); 
-            }
-
-            form.bundleShopLink.value = data.shopLink || ''; // NEU: Link laden
-            form.bundleGutschein.value = data.gutscheincode || '';
-            form.bundleRechnungsweg.value = data.rechnungsweg || '';
-            form.bundleStart.value = data.start || '';
-            form.bundleEnd.value = data.end || '';
-            
+            if (data.images && data.images.length) data.images.forEach(url => addBundleImageField(url));
+            else addBundleImageField();
             form.dataset.editingId = id;
-            document.getElementById('bundle-submit-btn').textContent = 'Änderungen Speichern';
-            document.getElementById('bundle-form').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('form-submit-btn').textContent = 'Änderungen Speichern';
+            form.scrollIntoView({ behavior: 'smooth' });
         };
 
-        window.copyToClipboard = (text) => {
-            navigator.clipboard.writeText(text).then(() => {
-                showMessage("Gutscheincode kopiert!");
-            }, (err) => {
-                console.error('Async: Could not copy text: ', err);
-            });
-        };
-
-
-        // --- CRUD ACTIONS (PUSH PROVISION) ---
-        window.savePushProvision = (event) => {
-            event.preventDefault();
-            const form = event.target;
-            const betragValue = parseFloat(form.pushBetrag.value);
-            if (isNaN(betragValue) || betragValue <= 0) {
-                 showMessage("Bitte geben Sie einen gültigen Betrag (> 0) ein.", true);
-                 return;
-            }
-            const data = {
-                id: form.dataset.editingId || generateId(),
-                titel: form.pushTitel.value || 'Zusatz-Push', 
-                betrag: betragValue, 
-                start: form.pushStart.value,
-                end: form.pushEnd.value,
-                bemerkung: form.pushBemerkung.value,
-                createdAt: form.dataset.editingId ? (pushProvisions.find(p => p.id === form.dataset.editingId)?.createdAt || new Date().toISOString()) : new Date().toISOString()
-            };
-
-            let changeLogEntry = null;
-            if(!form.dataset.editingId) {
-                changeLogEntry = `💰 Neuer PUSH: ${data.titel} (${data.betrag.toFixed(2)}€) ab ${data.start}`;
-            } else {
-                 const oldPush = pushProvisions.find(p => p.id === form.dataset.editingId);
-                 if (oldPush && oldPush.betrag !== data.betrag) {
-                     if (data.betrag > oldPush.betrag) {
-                         changeLogEntry = `💰 PUSH ERHÖHT: ${data.titel} jetzt ${data.betrag.toFixed(2)}€ (vorher ${oldPush.betrag.toFixed(2)}€)`;
-                     } else {
-                         changeLogEntry = `📉 Push gesenkt: ${data.titel} auf ${data.betrag.toFixed(2)}€`;
-                     }
-                 }
-            }
-
-            if (form.dataset.editingId) {
-                const index = pushProvisions.findIndex(p => p.id === form.dataset.editingId);
-                if (index !== -1) pushProvisions[index] = data;
-                showMessage("Push Provision aktualisiert!");
-            } else {
-                pushProvisions.push(data);
-                showMessage("Push Provision gespeichert!");
-            }
-
-            if(changeLogEntry) addRecentChange(changeLogEntry);
+        window.deleteBundle = (id) => {
+            if(!confirm("Löschen?")) return;
+            bundles = bundles.filter(b => b.id !== id);
             saveData();
-            form.reset();
-            delete form.dataset.editingId;
-            document.getElementById('push-submit-btn').textContent = 'Push Speichern';
         };
 
-        window.deletePushProvision = (id) => {
-            if (!confirm('Wirklich löschen?')) return;
-            pushProvisions = pushProvisions.filter(p => p.id !== id);
-            saveData();
-            showMessage("Push gelöscht.");
+        window.copyBundleLink = (id) => {
+            const url = `${window.location.href.split('?')[0]}?bundleId=${id}`;
+            navigator.clipboard.writeText(url).then(() => showMessage("Link kopiert!"));
         };
 
-        window.editPushProvision = (id) => {
-            const data = pushProvisions.find(p => p.id === id);
-            if (!data) return;
-            const form = document.getElementById('push-form');
-            form.pushTitel.value = data.titel || ''; 
-            form.pushBetrag.value = data.betrag || 0; 
-            form.pushStart.value = data.start || '';
-            form.pushEnd.value = data.end || '';
-            form.pushBemerkung.value = data.bemerkung || '';
-            form.dataset.editingId = id;
-            document.getElementById('push-submit-btn').textContent = 'Änderungen Speichern';
-            document.getElementById('push-form').scrollIntoView({ behavior: 'smooth' });
-        };
-
-
-        // --- CRUD ACTIONS (PROMOTIONS) ---
-
-        window.savePromotion = (event) => {
-            event.preventDefault();
-            const form = event.target;
-            let anbieterValue = form.anbieterSelect.value;
-            if (anbieterValue === 'Freiertext') anbieterValue = form.anbieterFreiertext.value;
-            if (!anbieterValue) { showMessage("Bitte geben Sie einen Anbieter ein.", true); return; }
-
-            const data = {
-                id: form.dataset.editingId || generateId(),
-                anbieter: anbieterValue, 
-                geraetebezeichnung: form.geraetebezeichnung.value,
-                aktionsbeginn: form.aktionsbeginn.value,
-                aktionsende: form.aktionsende.value,
-                einkaufspreis: parseFloat(form.einkaufspreis.value) || 0,
-                verkaufspreis: parseFloat(form.verkaufspreis.value) || 0,
-                noEinkaufspreis: form.noEinkaufspreis.checked,
-                noVerkaufspreis: form.noVerkaufspreis.checked,
-                einmalzahlungXL: form.einmalzahlungXL.value,
-                einmalzahlungL: form.einmalzahlungL.value,
-                einmalzahlungM: form.einmalzahlungM.value,
-                einmalzahlungS: form.einmalzahlungS.value,
-                einmalzahlungHomeXL: form.einmalzahlungHomeXL.value,
-                einmalzahlungHomeL: form.einmalzahlungHomeL.value,
-                einmalzahlungHomeM: form.einmalzahlungHomeM.value,
-                einmalzahlungHomeS: form.einmalzahlungHomeS.value,
-                mobile: form.mobile.checked,
-                myhome: form.myhome.checked,
-                data: form.data.checked,
-                anschlussbefreiung: form.anschlussbefreiung.checked,
-                zusatzpush: form.zusatzpush.checked,
-                sonderprovision: form.sonderprovision.value,
-                bemerkung: form.bemerkung.value,
-                bildUrl: form.bildUrl.value,
-                hwBenefit24: form.hwBenefit24.value,
-                hwBenefit36: form.hwBenefit36.value,
-                createdAt: form.dataset.editingId ? (promotions.find(p => p.id === form.dataset.editingId)?.createdAt || new Date().toISOString()) : new Date().toISOString()
-            };
-
-            let changesLog = []; 
-            if (form.dataset.editingId) {
-                const oldData = promotions.find(p => p.id === form.dataset.editingId);
-                if (oldData) {
-                    const oldPrice = parseFloat(oldData.verkaufspreis);
-                    const newPrice = parseFloat(data.verkaufspreis);
-                    if (!data.noVerkaufspreis && !oldData.noVerkaufspreis) {
-                        if (newPrice < oldPrice) changesLog.push(`🔥 Preissturz: ${data.geraetebezeichnung} (${data.anbieter}) jetzt nur noch ${newPrice.toFixed(2)} €!`);
-                        else if (newPrice > oldPrice) changesLog.push(`📈 Preisanstieg: ${data.geraetebezeichnung} (${data.anbieter}) jetzt ${newPrice.toFixed(2)} €.`);
-                    } else if (!data.noVerkaufspreis && oldData.noVerkaufspreis) {
-                        changesLog.push(`🔥 Neu bepreist: ${data.geraetebezeichnung} (${data.anbieter}) jetzt für ${newPrice.toFixed(2)} €!`);
-                    }
-                }
-                const index = promotions.findIndex(p => p.id === form.dataset.editingId);
-                if (index !== -1) promotions[index] = data;
-                showMessage("Aktion lokal aktualisiert!");
-            } else {
-                promotions.push(data);
-                const preisText = data.noVerkaufspreis ? 'Preis a.A.' : `${parseFloat(data.verkaufspreis).toFixed(2)} €`;
-                changesLog.push(`✨ Neu aufgenommen: ${data.geraetebezeichnung} (${data.anbieter}) für ${preisText}`);
-                showMessage("Aktion lokal gespeichert!");
-            }
-            changesLog.forEach(log => addRecentChange(log));
-            saveData();
-            form.reset();
-            delete form.dataset.editingId;
-            document.getElementById('submit-btn').textContent = 'Aktion Speichern';
-            toggleFreeText(null);
-            togglePriceInput('EK', false);
-            togglePriceInput('VK', false);
-        };
-
-        window.deletePromotion = (id) => {
-            if (!confirm('Sind Sie sicher, dass Sie diese Aktion löschen möchten?')) return;
-            promotions = promotions.filter(p => p.id !== id);
-            saveData();
-            showMessage("Aktion gelöscht.");
-        };
-
-        window.renewPromotion = (id) => {
-            const index = promotions.findIndex(p => p.id === id);
-            if (index === -1) return;
-            const today = new Date();
-            const renewalDate = new Date(today);
-            renewalDate.setDate(renewalDate.getDate() + 30);
-            const yyyy = renewalDate.getFullYear();
-            const mm = String(renewalDate.getMonth() + 1).padStart(2, '0');
-            const dd = String(renewalDate.getDate()).padStart(2, '0');
-            promotions[index].aktionsende = `${yyyy}-${mm}-${dd}`;
-            saveData();
-            showMessage(`Verlängert bis ${dd}.${mm}.${yyyy}!`);
-        };
-
-        window.editPromotion = (id) => {
-            const data = promotions.find(p => p.id === id);
-            if (!data) return;
-            const form = document.getElementById('promotion-form');
-            const provider = data.anbieter || '';
-            if (predefinedProviders.includes(provider) && provider !== 'Freiertext') {
-                form.anbieterSelect.value = provider;
-                form.anbieterFreiertext.value = '';
-                toggleFreeText(false);
-            } else {
-                form.anbieterSelect.value = 'Freiertext';
-                form.anbieterFreiertext.value = provider;
-                toggleFreeText(true);
-            }
-            form.geraetebezeichnung.value = data.geraetebezeichnung || '';
-            form.aktionsbeginn.value = data.aktionsbeginn || '';
-            form.aktionsende.value = data.aktionsende || '';
-            form.einkaufspreis.value = data.einkaufspreis || 0;
-            form.verkaufspreis.value = data.verkaufspreis || 0;
-            form.noEinkaufspreis.checked = !!data.noEinkaufspreis;
-            form.noVerkaufspreis.checked = !!data.noVerkaufspreis;
-            togglePriceInput('EK', !!data.noEinkaufspreis);
-            togglePriceInput('VK', !!data.noVerkaufspreis);
-            form.einmalzahlungXL.value = data.einmalzahlungXL || '';
-            form.einmalzahlungL.value = data.einmalzahlungL || '';
-            form.einmalzahlungM.value = data.einmalzahlungM || '';
-            form.einmalzahlungS.value = data.einmalzahlungS || '';
-            form.einmalzahlungHomeXL.value = data.einmalzahlungHomeXL || '';
-            form.einmalzahlungHomeL.value = data.einmalzahlungHomeL || '';
-            form.einmalzahlungHomeM.value = data.einmalzahlungHomeM || '';
-            form.einmalzahlungHomeS.value = data.einmalzahlungHomeS || '';
-            form.mobile.checked = data.mobile || false;
-            form.myhome.checked = data.myhome || false;
-            form.data.checked = data.data || false;
-            form.anschlussbefreiung.checked = data.anschlussbefreiung || false;
-            form.zusatzpush.checked = data.zusatzpush || false;
-            form.sonderprovision.value = data.sonderprovision || '';
-            form.bemerkung.value = data.bemerkung || '';
-            form.bildUrl.value = data.bildUrl || '';
-            form.hwBenefit24.value = data.hwBenefit24 || '';
-            form.hwBenefit36.value = data.hwBenefit36 || '';
-            form.dataset.editingId = id;
-            document.getElementById('submit-btn').textContent = 'Änderungen Speichern';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
-
-        // --- CRUD ACTIONS (INCENTIVES) ---
-        window.saveIncentive = (event) => {
-            event.preventDefault();
-            const form = event.target;
-            const data = {
-                id: form.dataset.editingId || generateId(),
-                titel: form.incentiveTitel.value,
-                incentiveStart: form.incentiveStart.value,
-                incentiveEnd: form.incentiveEnd.value,
-                bildUrl: form.incentiveBildUrl.value,
-                bemerkung: form.incentiveBemerkung.value,
-                priority: 1, 
-                createdAt: form.dataset.editingId ? (incentives.find(i => i.id === form.dataset.editingId)?.createdAt || new Date().toISOString()) : new Date().toISOString()
-            };
-            if(!form.dataset.editingId) addRecentChange(`⭐ Neues Incentive: ${data.titel}`);
-            if (form.dataset.editingId) {
-                const index = incentives.findIndex(i => i.id === form.dataset.editingId);
-                if (index !== -1) incentives[index] = data;
-                showMessage("Incentive aktualisiert!");
-            } else {
-                incentives.push(data);
-                showMessage("Incentive gespeichert!");
-            }
-            saveData();
-            form.reset();
-            delete form.dataset.editingId;
-            document.getElementById('incentive-submit-btn').textContent = 'Incentive Speichern';
-        };
-
-        window.deleteIncentive = (id) => {
-            if (!confirm('Löschen?')) return;
-            incentives = incentives.filter(i => i.id !== id);
-            saveData();
-            showMessage("Incentive gelöscht.");
-        };
-
-        window.editIncentive = (id) => {
-            const data = incentives.find(i => i.id === id);
-            if (!data) return;
-            const form = document.getElementById('incentive-form');
-            form.incentiveTitel.value = data.titel || '';
-            form.incentiveStart.value = data.incentiveStart || '';
-            form.incentiveEnd.value = data.incentiveEnd || '';
-            form.incentiveBildUrl.value = data.bildUrl || '';
-            form.incentiveBemerkung.value = data.bemerkung || '';
-            form.dataset.editingId = id;
-            document.getElementById('incentive-submit-btn').textContent = 'Änderungen Speichern';
-            document.getElementById('incentive-form').scrollIntoView({ behavior: 'smooth' });
-        };
-
-        window.renewIncentive = (id) => {
-            const index = incentives.findIndex(i => i.id === id);
-            if (index === -1) return;
-            const today = new Date();
-            const renewalDate = new Date(today);
-            renewalDate.setDate(renewalDate.getDate() + 30);
-            const yyyy = renewalDate.getFullYear();
-            const mm = String(renewalDate.getMonth() + 1).padStart(2, '0');
-            const dd = String(renewalDate.getDate()).padStart(2, '0');
-            incentives[index].incentiveEnd = `${yyyy}-${mm}-${dd}`;
-            saveData();
-            showMessage(`Incentive verlängert bis ${dd}.${mm}.${yyyy}!`);
-        };
-
-        // --- RENDERING ---
-        
-        function renderAdminPushList(list) {
-            const listEl = document.getElementById('admin-push-list');
-            if (list.length === 0) { listEl.innerHTML = '<p class="text-center text-gray-400">Keine Push-Provisionen vorhanden.</p>'; return; }
-            listEl.innerHTML = list.map(p => {
-                const expired = isExpired(p.end);
-                const betragDisplay = p.betrag > 0 ? `${p.betrag.toFixed(2)} €` : 'Betrag n.A.';
-                return `
-                    <div class="bg-white p-4 rounded-lg shadow-md flex justify-between items-center mb-3 border-l-4 ${expired ? 'border-red-500' : 'border-green-500'}">
-                        <div>
-                            <p class="text-lg font-semibold text-gray-800">Push: ${p.titel || 'Extra'} (${betragDisplay}) ${expired ? '<span class="text-red-500 text-xs font-bold">(ABGELAUFEN)</span>' : ''}</p>
-                            <p class="text-xs text-gray-400">Zeitraum: ${p.start} bis ${p.end}</p>
-                        </div>
-                        <div class="flex space-x-2 admin-controls">
-                            <button onclick='editPushProvision("${p.id}")' class="p-2 text-sm bg-yellow-500 text-white rounded-full hover:bg-yellow-600">Bearbeiten</button>
-                            <button onclick='deletePushProvision("${p.id}")' class="p-2 text-sm bg-red-500 text-white rounded-full hover:bg-red-600">Löschen</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function renderAdminBundleList(list) {
-            const listEl = document.getElementById('admin-bundle-list');
-            if (list.length === 0) { listEl.innerHTML = '<p class="text-center text-gray-400">Keine o2 Bundles vorhanden.</p>'; return; }
-            listEl.innerHTML = list.map(b => {
+        function renderAdminList() {
+            const el = document.getElementById('admin-list');
+            if (bundles.length === 0) { el.innerHTML = '<p class="text-gray-400 text-center">Keine Bundles vorhanden.</p>'; return; }
+            el.innerHTML = bundles.map(b => {
                 const expired = isExpired(b.end);
                 return `
-                    <div class="bg-white p-4 rounded-lg shadow-md flex justify-between items-center mb-3 border-l-4 ${expired ? 'border-red-500' : 'border-blue-800'}">
+                    <div class="bg-white p-4 rounded-lg shadow border-l-4 ${expired ? 'border-red-500' : 'border-blue-600'} flex justify-between items-center mb-3">
                         <div>
-                            <p class="text-lg font-bold text-blue-900">📦 ${b.titel} ${expired ? '<span class="text-red-500 text-xs font-bold">(ABGELAUFEN)</span>' : ''}</p>
-                            <p class="text-sm font-semibold text-gray-700">Tarif: ${b.tarifName || '-'} | Preis: ${b.angebotspreis || '-'} €</p>
-                            <p class="text-xs text-gray-400">Zeitraum: ${b.start} bis ${b.end}</p>
+                            <h4 class="font-bold text-lg">${b.titel}</h4>
+                            <p class="text-sm text-gray-600">${b.start} bis ${b.end} ${expired ? '<span class="text-red-500 font-bold">(Abgelaufen)</span>' : ''}</p>
                         </div>
-                        <div class="flex space-x-2 admin-controls items-center">
-                            <!-- Link Kopieren Button -->
-                            <button onclick='copyBundleLink("${b.id}")' class="p-2 text-sm bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 border border-blue-200 flex items-center gap-1 font-semibold transition" title="Direktlink kopieren">
-                                🔗 Link
-                            </button>
-                            <button onclick='editBundle("${b.id}")' class="p-2 text-sm bg-yellow-500 text-white rounded-full hover:bg-yellow-600">Bearbeiten</button>
-                            <button onclick='deleteBundle("${b.id}")' class="p-2 text-sm bg-red-500 text-white rounded-full hover:bg-red-600">Löschen</button>
+                        <div class="flex gap-2">
+                            <button onclick="copyBundleLink('${b.id}')" class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-sm hover:bg-blue-200">🔗 Link</button>
+                            <button onclick="editBundle('${b.id}')" class="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600">Edit</button>
+                            <button onclick="deleteBundle('${b.id}')" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">Löschen</button>
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        function renderAdminPromotionList(list) {
-            const listEl = document.getElementById('admin-promotion-list');
-            if (list.length === 0) { listEl.innerHTML = '<p class="text-center text-gray-400">Keine Aktionen gefunden.</p>'; return; }
-            listEl.innerHTML = list.map(p => {
-                const marge = calculateMargin(p.einkaufspreis, p.verkaufspreis, p.noEinkaufspreis, p.noVerkaufspreis);
-                const expired = isExpired(p.aktionsende); 
-                const einmalzahlungen = [
-                    p.einmalzahlungXL ? `XL: ${p.einmalzahlungXL}` : null,
-                    p.einmalzahlungL ? `L: ${p.einmalzahlungL}` : null,
-                    p.einmalzahlungM ? `M: ${p.einmalzahlungM}` : null,
-                    p.einmalzahlungS ? `S: ${p.einmalzahlungS}` : null
-                ].filter(Boolean).join(' | ');
-
-                let borderColor = 'border-gray-300';
-                if (expired) borderColor = 'border-red-500';
-                else if (marge === null) borderColor = 'border-blue-300'; 
-                else if (parseFloat(marge) >= 0) borderColor = 'border-green-500';
-                else borderColor = 'border-red-500';
-
-                const margeDisplay = marge !== null 
-                    ? `<span class="${parseFloat(marge) >= 0 ? 'text-green-600' : 'text-red-600'} font-bold">${marge} €</span>` 
-                    : '<span class="text-gray-400">n.v.</span>';
-
-                const ekDisplay = p.noEinkaufspreis ? 'n.v.' : parseFloat(p.einkaufspreis).toFixed(2) + '€';
-                const vkDisplay = p.noVerkaufspreis ? 'n.v.' : parseFloat(p.verkaufspreis).toFixed(2) + '€';
-
-                return `
-                    <div class="bg-white p-4 rounded-lg shadow-md flex justify-between items-center mb-3 border-l-4 ${borderColor}">
-                        <div>
-                            <p class="text-lg font-semibold text-gray-800">${p.geraetebezeichnung} (${p.anbieter}) ${expired ? '<span class="text-red-500 text-xs font-bold">(ABGELAUFEN)</span>' : ''}</p>
-                            <p class="text-sm text-gray-500">EK: ${ekDisplay} | VK: ${vkDisplay} | Marge (Netto): ${margeDisplay}</p>
-                            ${einmalzahlungen ? `<p class="text-xs text-gray-400">EZ Mobile: ${einmalzahlungen}</p>` : ''}
-                            <p class="text-xs text-gray-400">${p.aktionsbeginn} bis ${p.aktionsende}</p>
-                        </div>
-                        <div class="flex space-x-2 admin-controls">
-                            ${expired 
-                                ? `<button onclick='renewPromotion("${p.id}")' class="p-2 text-sm bg-purple-600 text-white rounded-full hover:bg-purple-700 transition duration-150">30 Tage Verlängern</button>`
-                                : `<button onclick='editPromotion("${p.id}")' class="p-2 text-sm bg-yellow-500 text-white rounded-full hover:bg-yellow-600 transition duration-150">Bearbeiten</button>`
-                            }
-                            <button onclick='deletePromotion("${p.id}")' class="p-2 text-sm bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-150">Löschen</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function renderAdminIncentiveList(list) {
-            const listEl = document.getElementById('admin-incentive-list');
-            if (list.length === 0) { listEl.innerHTML = '<p class="text-center text-gray-400">Keine Incentives vorhanden.</p>'; return; }
-            listEl.innerHTML = list.map(p => {
-                const expired = isExpired(p.incentiveEnd);
-                return `
-                    <div class="bg-white p-4 rounded-lg shadow-md flex justify-between items-center mb-3 border-l-4 ${expired ? 'border-red-500' : 'border-blue-500'}">
-                        <div>
-                            <p class="text-lg font-semibold text-gray-800">${p.titel || 'Incentive'} ${expired ? '<span class="text-red-500 text-xs font-bold">(ABGELAUFEN)</span>' : ''}</p>
-                            <p class="text-sm text-gray-600 mb-1">${p.bemerkung.substring(0, 50)}${p.bemerkung.length > 50 ? '...' : ''}</p>
-                            <p class="text-xs text-gray-400">Laufzeit: ${p.incentiveStart} bis ${p.incentiveEnd}</p>
-                        </div>
-                        <div class="flex space-x-2 admin-controls">
-                            ${expired 
-                                ? `<button onclick='renewIncentive("${p.id}")' class="p-2 text-sm bg-purple-600 text-white rounded-full hover:bg-purple-700 transition duration-150">30 Tage Verlängern</button>`
-                                : `<button onclick='editIncentive("${p.id}")' class="p-2 text-sm bg-yellow-500 text-white rounded-full hover:bg-yellow-600 transition duration-150">Bearbeiten</button>`
-                            }
-                            <button onclick='deleteIncentive("${p.id}")' class="p-2 text-sm bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-150">Löschen</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function renderUserView(promotionsList, incentivesList, pushList, bundlesList) {
-            const tocContainerEl = document.getElementById('toc-container');
-            const viewEl = document.getElementById('user-view-content'); 
-            const incentiveListEl = document.getElementById('user-incentive-list');
-            const pushListEl = document.getElementById('user-push-list'); 
-            const bundleListEl = document.getElementById('user-bundle-list');
-            const bundleSectionHeader = document.getElementById('bundle-section-header');
-            
-            // --- Push Provisions ---
-            const activePush = pushList.filter(p => !isExpired(p.end));
-            if (activePush.length > 0) {
-                pushListEl.innerHTML = activePush.map(p => {
-                    const betragDisplay = p.betrag > 0 ? `${p.betrag.toFixed(2)} €` : 'N.A.';
-                    return `
-                        <div class="break-inside-avoid print-break-avoid bg-white rounded-lg shadow-xl p-4 border-l-8 border-green-500 flex items-start space-x-4 hover:shadow-2xl transition duration-300">
-                            <img src="https://placehold.co/100x100/22c55e/ffffff?text=%E2%82%AC" 
-                                 alt="Euro Zeichen" class="w-20 h-20 object-contain rounded-md shadow flex-shrink-0">
-                            <div class="flex-grow">
-                                <h4 class="text-xl font-bold text-green-700">💰 PUSH: ${p.titel || 'Extra'} (${betragDisplay})</h4>
-                                <p class="text-lg text-gray-800 font-semibold max-h-full">${p.bemerkung}</p>
-                                <span class="text-xs text-gray-500 mt-2 block">Gültig: ${p.start} - ${p.end}</span>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-                pushListEl.parentElement.classList.remove('hidden'); 
+        function renderUserView(list, isSingle = false) {
+            const el = document.getElementById('user-grid');
+            if(isSingle) {
+                el.classList.remove('grid', 'grid-cols-1', 'gap-6');
+                el.classList.add('flex', 'justify-center');
             } else {
-                pushListEl.innerHTML = '';
-                pushListEl.parentElement.classList.add('hidden'); 
+                el.classList.add('grid', 'grid-cols-1', 'gap-6');
+                el.classList.remove('flex', 'justify-center');
             }
 
-            // --- Incentives ---
-            const activeIncentives = incentivesList.filter(p => !isExpired(p.incentiveEnd));
-            if (activeIncentives.length > 0) {
-                incentiveListEl.innerHTML = activeIncentives.map(i => `
-                    <div class="break-inside-avoid print-break-avoid bg-white rounded-lg shadow-xl p-4 border-l-4 border-purple-500 flex items-start space-x-4 hover:shadow-2xl transition duration-300">
-                        <img src="${i.bildUrl || 'https://placehold.co/80x80/8b5cf6/ffffff?text=Incentive'}" 
-                             onerror="this.onerror=null;this.src='https://placehold.co/80x80/8b5cf6/ffffff?text=Incentive';" 
-                             alt="Incentive Bild" class="w-20 h-20 object-contain bg-white border border-gray-100 rounded-md shadow flex-shrink-0">
-                        <div class="flex-grow">
-                            <h4 class="text-lg font-bold text-purple-700">⭐ ${i.titel || 'Incentive'}</h4>
-                            <p class="text-sm text-gray-700 max-h-full">${i.bemerkung}</p>
-                            <span class="text-xs text-gray-400 mt-1 block">Aktion: ${i.incentiveStart} - ${i.incentiveEnd}</span>
-                        </div>
-                    </div>
-                `).join('');
-            } else {
-                incentiveListEl.innerHTML = '<p class="text-center text-gray-500 italic mt-4 col-span-full">Keine aktuellen Incentives.</p>';
-            }
-
-            // --- BUNDLES (NEU) ---
-            // If bundlesList is passed (even empty), filter it. If called from renderSingleBundleView, it passes only the specific bundle.
-            const activeBundles = bundlesList.length === 1 ? bundlesList : bundlesList.filter(b => !isExpired(b.end));
-            
-            if (activeBundles.length > 0) {
-                bundleListEl.innerHTML = activeBundles.map(b => {
-                    const imagesHtml = b.images && b.images.length > 0 
-                        ? `<div class="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-thin">
-                            ${b.images.map(img => `<img src="${img}" class="h-40 w-auto object-contain rounded-md border border-gray-200 shadow-sm" onerror="this.style.display='none'">`).join('')}
-                          </div>`
-                        : '';
-                    
-                    const badges = [
-                        b.optionOnlineSchutz ? `<span class="px-2 py-1 bg-green-100 text-green-800 rounded-md text-xs font-bold border border-green-200">🛡️ Inkl. Online Schutz</span>` : '',
-                        b.optionTV ? `<span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs font-bold border border-blue-200">📺 Inkl. o2 TV</span>` : '',
-                        b.optionCustom ? `<span class="px-2 py-1 bg-purple-100 text-purple-800 rounded-md text-xs font-bold border border-purple-200">➕ ${b.optionCustom}</span>` : ''
-                    ].filter(Boolean).join('');
-
-                    return `
-                        <div class="break-inside-avoid print-break-avoid bg-white rounded-xl shadow-2xl overflow-hidden border-2 border-blue-800 mb-8 transform hover:scale-[1.01] transition duration-300">
-                            <div class="bg-blue-900 p-4 text-white flex justify-between items-center">
-                                <h3 class="text-2xl font-bold flex items-center">
-                                    <span class="mr-2">📦</span> ${b.titel}
-                                </h3>
-                                <span class="text-xs bg-blue-700 px-2 py-1 rounded">Gültig bis: ${b.end}</span>
-                            </div>
-                            <div class="p-6 relative">
-                                <div class="flex flex-col md:flex-row justify-between items-start mb-4">
-                                    <div class="mb-4 md:mb-0">
-                                        <h4 class="text-xl font-bold text-gray-800 mb-1">${b.tarifName || 'Tarif nicht angegeben'}</h4>
-                                        <div class="flex gap-2 flex-wrap mt-2">${badges}</div>
-                                    </div>
-                                    ${b.angebotspreis ? `
-                                        <div class="bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg transform rotate-2 md:rotate-0">
-                                            <span class="block text-xs uppercase font-bold text-red-100 text-center">Angebotspreis</span>
-                                            <span class="block text-3xl font-extrabold">${b.angebotspreis} €</span>
-                                        </div>
-                                    ` : ''}
-                                </div>
-
-                                ${imagesHtml}
-                                
-                                <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-600 mb-4 mt-4">
-                                    <h4 class="font-bold text-blue-900 mb-2">Rechnungsweg / Buchungsprozess:</h4>
-                                    <div class="text-gray-800 text-sm whitespace-pre-line">${b.rechnungsweg}</div>
-                                </div>
-                                
-                                ${b.shopLink ? `
-                                <div class="mt-4 text-center">
-                                    <a href="${b.shopLink}" target="_blank" class="inline-block bg-green-600 text-white font-bold text-lg px-8 py-3 rounded-full shadow-lg hover:bg-green-700 hover:scale-105 transition transform flex items-center justify-center gap-2">
-                                        👉 Zum Angebot
-                                    </a>
-                                </div>
-                                ` : ''}
-
-                                ${b.gutscheincode ? `
-                                <div class="flex items-center gap-4 mt-4 pt-4 border-t border-gray-200">
-                                    <span class="text-sm font-bold text-gray-600">Gutscheincode:</span>
-                                    <code class="bg-gray-100 text-red-600 font-mono text-lg px-3 py-1 rounded border border-gray-300 cursor-pointer hover:bg-yellow-100 select-all" title="Klicken zum Kopieren" onclick="copyToClipboard('${b.gutscheincode}')">${b.gutscheincode}</code>
-                                    <span class="text-xs text-gray-400">(Klicken zum Kopieren)</span>
-                                </div>
-                                ` : ''}
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-                if(bundleSectionHeader) bundleSectionHeader.classList.remove('hidden');
-                bundleListEl.classList.remove('hidden');
-            } else {
-                bundleListEl.innerHTML = '';
-                if(bundleSectionHeader) bundleSectionHeader.classList.add('hidden');
-                bundleListEl.classList.add('hidden');
-            }
-
-
-            // --- Promotions ---
-            const activePromotions = promotionsList.filter(p => !isExpired(p.aktionsende));
-            
-            // If we are in "Single Bundle View" (bundlesList.length === 1 and passed explicitly), we skip promotion rendering or just return empty
-            if (bundlesList.length === 1 && bundlesList[0].id) {
-                 // Do not render promotions in single view mode
-                 viewEl.innerHTML = '';
-                 tocContainerEl.innerHTML = '';
-                 return;
-            }
-
-            if (activePromotions.length === 0) {
-                viewEl.innerHTML = '<p class="text-center text-gray-500 mt-10 text-xl">Aktuell sind keine Geräte-Aktionen verfügbar.</p>';
-                tocContainerEl.innerHTML = ''; 
+            const activeList = isSingle ? list : list.filter(b => !isExpired(b.end));
+            if (activeList.length === 0) {
+                el.innerHTML = '<div class="col-span-full w-full text-center p-10 text-gray-500 bg-white rounded-xl shadow">Aktuell keine Angebote verfügbar.</div>';
                 return;
             }
 
-            const groupedPromotions = activePromotions.reduce((acc, p) => {
-                const anbieter = p.anbieter || 'Unbekannter Anbieter';
-                if (!acc[anbieter]) acc[anbieter] = [];
-                acc[anbieter].push(p);
-                return acc;
-            }, {});
-
-            const anbieterList = Object.keys(groupedPromotions).sort();
-
-            let tocHtml = '';
-            
-            // NEU: BUNDLE LINK IN TOC (WENN AKTIV und nicht Single View)
-            if (activeBundles.length > 0) {
-                tocHtml += `
-                <a href="#bundle-section-header" class="block p-3 bg-blue-100 hover:bg-blue-200 rounded-lg text-blue-900 font-bold border-2 border-blue-300 transition duration-150 shadow-sm hover:shadow-md text-center">
-                    📦 o2 Bundle Angebote (${activeBundles.length})
-                </a>`;
-            }
-
-            tocHtml += anbieterList.map(anbieter => {
-                const safeId = anbieter.replace(/[^a-zA-Z0-9]/g, '_');
-                return `<a href="#${safeId}" class="block p-3 bg-blue-50 hover:bg-blue-100 rounded-lg text-blue-700 font-medium transition duration-150 shadow-sm hover:shadow-md text-center">${anbieter} (${groupedPromotions[anbieter].length})</a>`;
-            }).join('');
-            
-            // Inhaltsverzeichnis (TOC)
-            tocContainerEl.innerHTML = `
-                <div class="bg-white p-6 rounded-xl shadow-lg mb-8 break-inside-avoid print-break-avoid">
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">Inhaltsangabe: Anbieter-Übersicht</h3>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                        ${tocHtml}
-                    </div>
-                </div>
-            `;
-
-            let groupedPromotionsHtml = '';
-            anbieterList.forEach(anbieter => {
-                const safeId = anbieter.replace(/[^a-zA-Z0-9]/g, '_');
-                groupedPromotionsHtml += `
-                    <div id="${safeId}" class="mt-10 pt-4 border-t-2 border-blue-600 break-after-avoid print-break-avoid">
-                        <h3 class="text-3xl font-extrabold text-blue-800 mb-6">${anbieter} Aktionen</h3>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-                `;
+            el.innerHTML = activeList.map(b => {
+                const imagesHtml = b.images && b.images.length > 0 
+                    ? `<div class="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-thin justify-center">
+                        ${b.images.map(img => `<img src="${img}" class="h-48 md:h-64 w-auto object-contain rounded-md border border-gray-200 shadow-sm bg-white" onerror="this.style.display='none'">`).join('')}
+                      </div>` : '';
                 
-                groupedPromotions[anbieter].forEach((p, index) => {
-                    const marge = calculateMargin(p.einkaufspreis, p.verkaufspreis, p.noEinkaufspreis, p.noVerkaufspreis);
-                    const tariffs = [ p.mobile ? 'Mobilfunk-Tarife' : '', p.myhome ? 'Festnetz-Tarife' : '', p.data ? 'Datentarife' : '' ].filter(Boolean);
-                    const hasHomeEz = p.einmalzahlungHomeXL || p.einmalzahlungHomeL || p.einmalzahlungHomeM || p.einmalzahlungHomeS;
-                    const pageBreakClass = (index > 0 && (index + 1) % 3 === 0 && index !== (groupedPromotions[anbieter].length - 1)) ? 'page-break-after-3' : '';
+                const badges = [
+                    b.optionOnlineSchutz ? `<span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-bold border border-green-200">🛡️ Online Schutz</span>` : '',
+                    b.optionTV ? `<span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-bold border border-blue-200">📺 o2 TV</span>` : '',
+                    b.optionCustom ? `<span class="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs font-bold border border-purple-200">➕ ${b.optionCustom}</span>` : ''
+                ].filter(Boolean).join('');
 
-                    groupedPromotionsHtml += `
-                        <div class="break-inside-avoid print-break-avoid bg-white rounded-xl shadow-2xl overflow-hidden hover:shadow-3xl transform hover:-translate-y-1 transition duration-300 ${pageBreakClass}">
-                            <div class="relative h-48 bg-white flex items-center justify-center p-4">
-                                <img src="${p.bildUrl || 'https://placehold.co/400x200/2563eb/ffffff?text=Bild+Fehlt'}" 
-                                     onerror="this.onerror=null;this.src='https://placehold.co/400x200/2563eb/ffffff?text=Bild+Fehlt';" 
-                                     alt="${p.geraetebezeichnung}" class="w-full h-full object-contain">
-                                ${!p.noVerkaufspreis ? `<div class="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold py-1 px-3 rounded-full shadow-lg">Verkaufspreis: ${parseFloat(p.verkaufspreis).toFixed(2)} €</div>` : ''}
-                            </div>
-                            <div class="p-5">
-                                <h2 class="text-2xl font-extrabold text-gray-900 mb-1">${p.geraetebezeichnung}</h2>
-                                <p class="text-sm font-medium text-blue-600 mb-3">${p.anbieter}</p>
-                                <div class="flex items-center text-sm text-gray-500 mb-4"><span>Aktion: ${p.aktionsbeginn} - ${p.aktionsende}</span></div>
-                                <div class="flex flex-wrap gap-2 mb-4">${tariffs.map(t => `<span class="px-3 py-1 text-xs font-semibold text-blue-800 bg-blue-100 rounded-full">${t}</span>`).join('')}</div>
-                                <div class="space-y-2 mb-4">
-                                    ${p.anschlussbefreiung ? '<span class="flex items-center text-sm text-green-700 font-medium">✅ Anschlussbefreiung</span>' : ''}
-                                    ${p.zusatzpush ? '<span class="flex items-center text-sm text-purple-700 font-medium">⚡ Zusätzlicher Push</span>' : ''}
-                                    ${p.sonderprovision ? `<span class="flex items-center text-sm text-yellow-700 font-medium">💰 Sonderprovision: ${p.sonderprovision}</span>` : ''}
+                const widthClass = isSingle ? 'w-full max-w-3xl' : 'w-full';
+
+                return `
+                    <div class="bundle-card bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-200 animate-fade-in mb-6 break-inside-avoid ${widthClass}">
+                        <div class="bg-blue-900 p-4 text-white flex justify-between items-center">
+                            <h3 class="text-xl md:text-2xl font-bold flex items-center gap-2">📦 ${b.titel}</h3>
+                            <span class="text-xs bg-blue-800 px-2 py-1 rounded border border-blue-700 whitespace-nowrap">Bis: ${b.end}</span>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex flex-col md:flex-row justify-between items-start mb-6 gap-4 border-b border-gray-100 pb-4">
+                                <div>
+                                    <h4 class="text-xl font-bold text-gray-800 mb-2">${b.tarifName || 'Tarifdetails'}</h4>
+                                    <div class="flex gap-2 flex-wrap">${badges}</div>
                                 </div>
-                                <div class="mt-4 space-y-2 border-t pt-4">
-                                    <p class="text-xs font-semibold text-gray-700">Hardware Benefits:</p>
-                                    ${p.hwBenefit24 ? `<a href="${p.hwBenefit24}" target="_blank" class="block text-sm text-blue-500 hover:text-blue-700 truncate">24 Monate Details</a>` : ''}
-                                    ${p.hwBenefit36 ? `<a href="${p.hwBenefit36}" target="_blank" class="block text-sm text-blue-500 hover:text-blue-700 truncate">36 Monate Details</a>` : ''}
-                                </div>
-                                ${p.bemerkung ? `<div class="mt-4 p-3 bg-gray-50 rounded-lg text-sm text-gray-700 italic">${p.bemerkung}</div>` : ''}
-                                <div class="mt-5 pt-3 border-t">
-                                    <p class="text-xs font-semibold text-gray-700 mb-1">Einmalzahlung o2 Mobile (Kunde):</p>
-                                    <div class="text-xs text-gray-500 grid grid-cols-2 gap-1">
-                                        ${p.einmalzahlungXL ? `<span><span class="font-bold">XL:</span> ${p.einmalzahlungXL}</span>` : ''}
-                                        ${p.einmalzahlungL ? `<span><span class="font-bold">L:</span> ${p.einmalzahlungL}</span>` : ''}
-                                        ${p.einmalzahlungM ? `<span><span class="font-bold">M:</span> ${p.einmalzahlungM}</span>` : ''}
-                                        ${p.einmalzahlungS ? `<span><span class="font-bold">S:</span> ${p.einmalzahlungS}</span>` : ''}
+                                ${b.angebotspreis ? `
+                                    <div class="bg-red-600 text-white px-5 py-3 rounded-lg shadow-md transform rotate-1 flex flex-col items-center min-w-[100px]">
+                                        <div class="text-[10px] uppercase font-bold text-red-100">Preis</div>
+                                        <div class="text-3xl font-extrabold whitespace-nowrap">${b.angebotspreis} €</div>
                                     </div>
-                                    ${hasHomeEz ? `
-                                        <p class="text-xs font-semibold text-gray-700 mb-1 mt-2">Einmalzahlung o2 My Home (Kunde):</p>
-                                        <div class="text-xs text-gray-500 grid grid-cols-2 gap-1">
-                                            ${p.einmalzahlungHomeXL ? `<span><span class="font-bold">XL:</span> ${p.einmalzahlungHomeXL}</span>` : ''}
-                                            ${p.einmalzahlungHomeL ? `<span><span class="font-bold">L:</span> ${p.einmalzahlungHomeL}</span>` : ''}
-                                            ${p.einmalzahlungHomeM ? `<span><span class="font-bold">M:</span> ${p.einmalzahlungHomeM}</span>` : ''}
-                                            ${p.einmalzahlungHomeS ? `<span><span class="font-bold">S:</span> ${p.einmalzahlungHomeS}</span>` : ''}
-                                        </div>
-                                    ` : ''}
-                                    <p class="text-xs text-gray-500 mt-2 pt-2 border-t">EK: ${p.noEinkaufspreis ? 'n.v.' : parseFloat(p.einkaufspreis).toFixed(2) + ' €'}</p>
-                                    <p class="text-md font-bold text-gray-800">Marge (Netto): ${marge !== null ? `<span class="${parseFloat(marge) >= 0 ? 'text-green-600' : 'text-red-600'}">${marge} €</span>` : '<span class="text-gray-400">n.v.</span>'}</p>
-                                </div>
+                                ` : ''}
+                            </div>
+                            ${imagesHtml}
+                            <div class="bg-gray-50 p-5 rounded-lg border-l-4 border-blue-600 mb-6 text-gray-700 whitespace-pre-line leading-relaxed text-sm md:text-base shadow-inner">
+                                ${b.rechnungsweg}
+                            </div>
+                            <div class="flex flex-col md:flex-row gap-4 items-center justify-between mt-4 pt-4 border-t border-gray-200">
+                                ${b.gutscheincode ? `
+                                    <div class="flex flex-col md:flex-row items-center gap-2 bg-yellow-50 px-4 py-3 rounded-lg border border-yellow-200 w-full md:w-auto shadow-sm">
+                                        <span class="text-xs font-bold text-gray-500 uppercase tracking-wide">Dein Gutscheincode:</span>
+                                        <code class="text-red-600 font-mono font-bold text-xl cursor-pointer select-all bg-white px-2 rounded border border-yellow-100" onclick="copyToClipboard('${b.gutscheincode}')" title="Kopieren">${b.gutscheincode}</code>
+                                    </div>
+                                ` : '<div></div>'}
+                                ${b.shopLink ? `
+                                    <a href="${b.shopLink}" target="_blank" class="w-full md:w-auto text-center bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition transform hover:-translate-y-1 flex items-center justify-center gap-2 text-lg">
+                                        Zum Angebot <span class="text-xl">👉</span>
+                                    </a>
+                                ` : ''}
                             </div>
                         </div>
-                    `;
-                }); 
-                groupedPromotionsHtml += `</div>`;
-            }); 
-            viewEl.innerHTML = groupedPromotionsHtml;
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderSingleBundleView(id) {
+            document.getElementById('admin-view').classList.add('hidden');
+            const mainHeader = document.getElementById('main-header');
+            if(mainHeader) mainHeader.classList.add('hidden');
+            document.getElementById('user-view').classList.remove('hidden');
+            
+            let simpleHeader = document.getElementById('simple-header');
+            if(!simpleHeader) {
+                simpleHeader = document.createElement('div');
+                simpleHeader.id = 'simple-header';
+                simpleHeader.className = 'text-center py-8 mb-2 animate-fade-in';
+                simpleHeader.innerHTML = `
+                    <div class="flex justify-center items-center gap-2 mb-2">
+                        <span class="text-blue-800 font-extrabold text-4xl tracking-tighter">o2</span> 
+                        <span class="text-gray-900 text-4xl font-light">Deal</span>
+                    </div>
+                    <div class="h-1 w-20 bg-blue-600 mx-auto rounded-full"></div>
+                `;
+                document.body.prepend(simpleHeader); 
+            } else { simpleHeader.classList.remove('hidden'); }
+
+            const bundle = bundles.find(b => b.id === id);
+            if(bundle) { renderUserView([bundle], true); } 
+            else { document.getElementById('user-grid').innerHTML = `<div class="w-full max-w-2xl mx-auto p-8 bg-white border border-red-100 text-red-600 rounded-xl text-center shadow-lg">Link ungültig.</div>`; }
         }
 
         window.switchView = () => {
             const isAdmin = document.getElementById('view-toggle').checked;
             document.getElementById('admin-view').classList.toggle('hidden', !isAdmin);
             document.getElementById('user-view').classList.toggle('hidden', isAdmin);
-            document.getElementById('view-name').textContent = isAdmin ? 'Admin-Ansicht' : 'Kunden-Ansicht';
-            
-            // NEU: Update Button Logik
-            const emailBtn = document.getElementById('email-update-btn');
-            if(emailBtn) {
-                if(isAdmin) emailBtn.classList.remove('hidden');
-                else emailBtn.classList.add('hidden');
-            }
         };
 
-        window.toggleFreeText = (manualOverride) => {
-            const selectEl = document.getElementById('anbieterSelect');
-            const freitextContainer = document.getElementById('anbieter-freitext-container');
-            let isFreeTextSelected;
-            if (manualOverride !== null) { isFreeTextSelected = manualOverride; } else { isFreeTextSelected = selectEl.value === 'Freiertext'; }
-            freitextContainer.classList.toggle('hidden', !isFreeTextSelected);
-            const freitextInput = document.getElementById('anbieterFreiertext');
-            if (isFreeTextSelected) { freitextInput.setAttribute('required', 'required'); } else { freitextInput.removeAttribute('required'); freitextInput.value = ''; }
+        window.goBack = () => {
+            const url = new URL(window.location);
+            url.searchParams.delete('bundleId');
+            window.history.pushState({}, '', url);
+            window.location.reload();
         };
 
-        // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
             loadData();
-            trackAndDisplayVisits();
-            switchView(); 
-            toggleFreeText(false); 
-            // Initialize one empty image field for bundle form
-            addBundleImageField(); 
-            
-            const today = new Date();
-            const dateStr = today.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            const printTitleEl = document.getElementById('print-header-title');
-            if(printTitleEl) { printTitleEl.textContent = `Aktionsmappe ${dateStr}`; }
-            const einkaufEl = document.getElementById('einkaufspreis');
-            const verkaufEl = document.getElementById('verkaufspreis');
-            const margePreviewEl = document.getElementById('marge-preview');
-            const updateMarginPreview = () => {
-                if (einkaufEl.disabled || verkaufEl.disabled) {
-                    margePreviewEl.textContent = 'Marge: -';
-                    margePreviewEl.className = 'text-gray-400 font-semibold text-lg';
-                    return;
-                }
-                const marge = calculateMargin(einkaufEl.value, verkaufEl.value, false, false);
-                margePreviewEl.textContent = `Vorschau Marge (Netto): ${marge} €`;
-                margePreviewEl.className = `font-semibold ${parseFloat(marge) >= 0 ? 'text-green-600' : 'text-red-600'}`;
-            };
-            einkaufEl.addEventListener('input', updateMarginPreview);
-            verkaufEl.addEventListener('input', updateMarginPreview);
-            updateMarginPreview(); 
-
-            window.addEventListener('storage', (e) => {
-                if ([STORAGE_KEY_PROMOTIONS, STORAGE_KEY_INCENTIVES, STORAGE_KEY_VISITS, STORAGE_KEY_PUSH, STORAGE_KEY_BUNDLES, STORAGE_KEY_PDF].includes(e.key)) {
-                    loadData();
-                }
-            });
-            const currencyInputs = ['einmalzahlungXL', 'einmalzahlungL', 'einmalzahlungM', 'einmalzahlungS', 'einmalzahlungHomeXL', 'einmalzahlungHomeL', 'einmalzahlungHomeM', 'einmalzahlungHomeS', 'sonderprovision'];
-            currencyInputs.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) { el.addEventListener('blur', () => formatCurrencyInput(el)); }
-            });
+            addBundleImageField();
+            if(!window.location.search.includes('bundleId')) { switchView(); }
         });
     </script>
 </head>
-<body class="min-h-screen">
-    <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-        
-        <!-- Header und View Switch -->
-        <header class="bg-white shadow-xl rounded-xl p-5 mb-8 flex flex-col md:flex-row justify-between items-center sticky top-0 z-10 no-print-shadow">
-            
-            <!-- LOGO UND TITEL CONTAINER -->
-            <div class="flex items-center header-content mb-4 md:mb-0">
-                <!-- HeTec GmbH LOGO -->
-                <div class="hetec-logo text-blue-700 font-extrabold text-xl mr-4 tracking-wider">
-                    HeTec GmbH
-                </div>
-                
-                <!-- NEU: DYNAMISCHER TITEL FÜR DRUCK -->
-                <h1 class="text-3xl font-extrabold text-gray-900">
-                    <span class="screen-only-text">Aktionsmappen-Dashboard</span>
-                    <span id="print-header-title" class="print-only-text">Aktionsmappe</span>
-                    <span class="text-sm font-normal text-gray-500 screen-only-text">(Lokal)</span>
-                </h1>
+<body class="min-h-screen p-4 md:p-8">
+    <div id="status-msg" class="fixed top-4 right-4 bg-gray-800 text-white px-4 py-2 rounded shadow-lg transition-opacity duration-300 opacity-0 z-50"></div>
+    <div class="max-w-5xl mx-auto">
+        <header id="main-header" class="bg-white shadow-lg rounded-xl p-4 mb-6 flex flex-col md:flex-row justify-between items-center sticky top-0 z-10">
+            <div class="flex items-center gap-3 mb-4 md:mb-0">
+                <span class="text-blue-700 font-extrabold text-xl">o2</span>
+                <h1 class="text-2xl font-bold text-gray-800">Bundle Manager</h1>
             </div>
-
-            <div class="flex items-center space-x-6">
-                <!-- PDF / DRUCKEN BUTTON -->
-                <button onclick="exportToPdf()" class="flex items-center space-x-2 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg transition shadow">
-                    <span>🖨️ PDF / Drucken</span>
-                </button>
-
-                <!-- NEU: EMAIL UPDATE BUTTON (Jetzt Standardmäßig hidden) -->
-                <button id="email-update-btn" onclick="sendUpdateEmail()" class="hidden relative flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition shadow">
-                    <span>✉️ Update-Mail senden</span>
-                    <!-- Badge für Anzahl der Änderungen -->
-                    <span id="email-badge" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full hidden">0</span>
-                </button>
-
-                <div class="flex items-center space-x-3">
-                    <label id="view-name" class="text-lg font-medium text-gray-700" for="view-toggle">Kunden-Ansicht</label>
-                    <label for="view-toggle" class="relative inline-block w-14 h-8 cursor-pointer toggle-switch">
-                        <input type="checkbox" id="view-toggle" class="opacity-0 w-0 h-0" onchange="switchView()">
-                        <span class="slider absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-gray-300 rounded-full transition duration-400 before:absolute before:content-[''] before:h-6 before:w-6 before:left-1 before:bottom-1 before:bg-white before:rounded-full before:transition before:duration-400"></span>
-                    </label>
-                </div>
+            <div class="flex items-center gap-4">
+                <button id="back-btn" onclick="goBack()" class="hidden text-sm bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded">← Alle</button>
+                <button onclick="window.print()" class="no-print bg-gray-800 text-white px-3 py-2 rounded hover:bg-gray-700 text-sm">🖨️ Druck</button>
+                <label class="toggle-switch relative inline-block w-12 h-6 cursor-pointer no-print">
+                    <input type="checkbox" id="view-toggle" onchange="switchView()">
+                    <span class="slider absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-gray-300 rounded-full transition duration-300 before:absolute before:bg-white before:h-4 before:w-4 before:left-1 before:bottom-1 before:rounded-full before:transition"></span>
+                </label>
             </div>
         </header>
 
-        <!-- Statusmeldung -->
-        <div id="status-message" class="hidden text-center"></div>
-
-        <!-- 1. ADMIN-ANSICHT -->
-        <section id="admin-view" class="space-y-8">
-            <h2 class="text-2xl font-bold text-gray-800 border-b pb-2">Admin-Bereich: Verwaltung (Lokal)</h2>
-            
-            <!-- Besuchszähler Anzeige -->
-            <div id="visit-counter-display" class="text-lg font-bold text-gray-600 p-3 bg-yellow-50 rounded-lg shadow-sm">
-                Besuche diesen Monat: Lade...
-            </div>
-            
-            <!-- PUSH PROVISION VERWALTUNG (NEU GANZ OBEN) -->
-            <div class="space-y-6 pt-2 pb-6 border-b-2 border-green-300 bg-green-50 rounded-lg p-4">
-                <h3 class="text-xl font-bold text-green-700 flex items-center">
-                    💰 Push Provision Verwaltung
-                </h3>
-                <div class="bg-white p-6 rounded-xl shadow-lg border border-green-200">
-                    <form id="push-form" onsubmit="savePushProvision(event)" data-editing-id="">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- NEU: Titel / Bezeichnung -->
-                            <div class="md:col-span-2">
-                                <label for="pushTitel" class="block text-sm font-medium text-gray-700">Titel / Bezeichnung der Provision</label>
-                                <input type="text" id="pushTitel" name="pushTitel" placeholder="z.B. Black Friday Push" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border" required>
-                            </div>
-                            
-                            <!-- NEU: Betrag -->
-                            <div>
-                                <label for="pushBetrag" class="block text-sm font-medium text-gray-700">Betrag (€, numerisch)</label>
-                                <input type="number" step="0.01" id="pushBetrag" name="pushBetrag" placeholder="z.B. 30.00" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border" required>
-                            </div>
-
-                            <!-- Start / Ende -->
-                            <div>
-                                <label for="pushStart" class="block text-sm font-medium text-gray-700">Push Start</label>
-                                <input type="date" id="pushStart" name="pushStart" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                            </div>
-                            <div>
-                                <label for="pushEnd" class="block text-sm font-medium text-gray-700">Push Ende</label>
-                                <input type="date" id="pushEnd" name="pushEnd" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                            </div>
-                            
-                            <!-- Bemerkungsfeld -->
-                            <div class="md:col-span-2">
-                                <label for="pushBemerkung" class="block text-sm font-medium text-gray-700">Bemerkung (Was gibt es extra?)</label>
-                                <textarea id="pushBemerkung" name="pushBemerkung" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border" required></textarea>
-                            </div>
-
+        <section id="admin-view" class="space-y-6 hidden">
+            <div class="bg-white p-6 rounded-xl shadow border-t-4 border-blue-600">
+                <h2 class="text-xl font-bold mb-4 text-blue-800">Bundle anlegen</h2>
+                <form id="bundle-form" onsubmit="saveBundle(event)">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700">Titel</label>
+                            <input type="text" name="titel" class="w-full border rounded p-2" required placeholder="z.B. iPhone 17 + Watch">
                         </div>
-                        <div class="mt-6">
-                            <button id="push-submit-btn" type="submit" class="w-full py-3 px-4 border border-transparent rounded-lg shadow-lg text-lg font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none transition duration-150">
-                                Push Speichern
-                            </button>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Tarif Name</label>
+                            <input type="text" name="tarifName" class="w-full border rounded p-2" placeholder="o2 Mobile M">
                         </div>
-                    </form>
-                </div>
-                
-                <h4 class="text-lg font-bold text-gray-800">Aktuelle Push-Provisionen</h4>
-                <div id="admin-push-list" class="space-y-4">
-                    <div class="text-center text-gray-500 p-4">Lade Push Provisionen...</div>
-                </div>
-            </div>
-
-            <!-- BUNDLE VERWALTUNG (NEU) -->
-            <div class="space-y-6 pt-6 border-b-2 border-blue-900 bg-blue-50 rounded-lg p-4">
-                <h3 class="text-xl font-bold text-blue-900 flex items-center">
-                    📦 o2 Bundle Angebote Verwaltung
-                </h3>
-                <div class="bg-white p-6 rounded-xl shadow-lg border border-blue-200">
-                    <form id="bundle-form" onsubmit="saveBundle(event)" data-editing-id="">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Titel -->
-                            <div class="md:col-span-2">
-                                <label for="bundleTitel" class="block text-sm font-medium text-gray-700">Bundle Bezeichnung / Titel</label>
-                                <input type="text" id="bundleTitel" name="bundleTitel" placeholder="z.B. o2 Mobile M + iPhone 16 Pro + TV" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border" required>
-                            </div>
-                            
-                            <!-- NEU: Tarif Name & Angebotspreis -->
-                            <div>
-                                <label for="bundleTarifName" class="block text-sm font-medium text-gray-700">Tarif Name (z.B. o2 Mobile M)</label>
-                                <input type="text" id="bundleTarifName" name="bundleTarifName" placeholder="o2 Mobile M" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                            </div>
-                            <div>
-                                <label for="bundlePreis" class="block text-sm font-medium text-gray-700">Angebotspreis (€)</label>
-                                <input type="text" id="bundlePreis" name="bundlePreis" placeholder="49.99" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border font-bold text-blue-900">
-                            </div>
-
-                            <!-- NEU: Optionen -->
-                            <div class="md:col-span-2 space-y-2 mt-2 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Enthaltene Optionen (Badge-Anzeige):</label>
-                                <div class="flex flex-wrap gap-4 items-center">
-                                    <label class="flex items-center space-x-2 cursor-pointer bg-white p-2 rounded border hover:bg-gray-50 transition">
-                                        <input type="checkbox" id="bundleOptionOnlineSchutz" name="bundleOptionOnlineSchutz" class="h-4 w-4 text-blue-600 rounded">
-                                        <span class="text-sm font-medium">🛡️ Inkl. Online Schutz</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2 cursor-pointer bg-white p-2 rounded border hover:bg-gray-50 transition">
-                                        <input type="checkbox" id="bundleOptionTV" name="bundleOptionTV" class="h-4 w-4 text-blue-600 rounded">
-                                        <span class="text-sm font-medium">📺 Inkl. o2 TV</span>
-                                    </label>
-                                    <div class="flex-grow">
-                                        <input type="text" id="bundleOptionCustom" name="bundleOptionCustom" placeholder="Weitere Option (z.B. Netflix, Napster...)" class="block w-full text-sm rounded-md border-gray-300 shadow-sm p-2 border">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Bilder -->
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Bild-URLs</label>
-                                <div id="bundle-images-container" class="space-y-2 mb-2">
-                                    <!-- Hier werden die Input Felder dynamisch eingefügt -->
-                                </div>
-                                <button type="button" onclick="addBundleImageField()" class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200 transition font-medium">
-                                    + Weiteres Bild hinzufügen
-                                </button>
-                            </div>
-
-                            <!-- NEU: Shop Link -->
-                            <div class="md:col-span-2">
-                                <label for="bundleShopLink" class="block text-sm font-medium text-gray-700">Externer Link / Shop-Link (Optional)</label>
-                                <input type="url" id="bundleShopLink" name="bundleShopLink" placeholder="https://mein-shop.de/angebot-xyz" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                                <p class="text-xs text-gray-500 mt-1">Wenn ausgefüllt, erscheint ein "Zum Angebot" Button beim Kunden.</p>
-                            </div>
-
-                            <!-- Gutschein -->
-                            <div>
-                                <label for="bundleGutschein" class="block text-sm font-medium text-gray-700">Gutscheincode</label>
-                                <input type="text" id="bundleGutschein" name="bundleGutschein" placeholder="z.B. SOMMER25" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                            </div>
-
-                            <!-- Rechnungsweg / Erklärung -->
-                            <div class="md:col-span-2">
-                                <label for="bundleRechnungsweg" class="block text-sm font-medium text-gray-700">Rechnungsweg & Buchungsprozess (Erklärung)</label>
-                                <textarea id="bundleRechnungsweg" name="bundleRechnungsweg" rows="4" placeholder="Buchungsprozess: Einzahlung 100€ in Kasse..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border" required></textarea>
-                            </div>
-
-                            <!-- Start / Ende -->
-                            <div>
-                                <label for="bundleStart" class="block text-sm font-medium text-gray-700">Startdatum</label>
-                                <input type="date" id="bundleStart" name="bundleStart" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                            </div>
-                            <div>
-                                <label for="bundleEnd" class="block text-sm font-medium text-gray-700">Enddatum</label>
-                                <input type="date" id="bundleEnd" name="bundleEnd" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                            </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Preis (€)</label>
+                            <input type="text" name="preis" class="w-full border rounded p-2 font-bold" placeholder="89.97">
                         </div>
-                        <div class="mt-6">
-                            <button id="bundle-submit-btn" type="submit" class="w-full py-3 px-4 border border-transparent rounded-lg shadow-lg text-lg font-medium text-white bg-blue-800 hover:bg-blue-900 focus:outline-none transition duration-150">
-                                Bundle Speichern
-                            </button>
+                        <div class="md:col-span-2 flex flex-wrap gap-4 bg-blue-50 p-3 rounded border border-blue-100">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" name="optOnlineSchutz" class="w-4 h-4"> <span class="text-sm">Online Schutz</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" name="optTV" class="w-4 h-4"> <span class="text-sm">o2 TV</span>
+                            </label>
+                            <input type="text" name="optCustom" placeholder="Zusatz..." class="text-sm border rounded p-1 flex-grow">
                         </div>
-                    </form>
-                </div>
-                
-                <h4 class="text-lg font-bold text-gray-800">Aktuelle Bundles</h4>
-                <div id="admin-bundle-list" class="space-y-4">
-                    <div class="text-center text-gray-500 p-4">Lade Bundles...</div>
-                </div>
-            </div>
-            
-            
-            <!-- PROMOTIONS VERWALTUNG (Jetzt oben) -->
-            <h3 class="text-xl font-bold text-blue-600 pt-6 border-t border-gray-300">Geräte-Aktionseingabe</h3>
-
-            <!-- Eingabeformular -->
-            <div class="bg-white p-6 rounded-xl shadow-lg">
-                <form id="promotion-form" onsubmit="savePromotion(event)" data-editing-id="">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        
-                        <!-- 1. Allgemeine Daten -->
-                        <div class="col-span-3 border-b pb-4 mb-4">
-                            <h3 class="text-xl font-semibold text-blue-600 mb-3">Basisdaten</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                
-                                <!-- Anbieter Dropdown -->
-                                <div>
-                                    <label for="anbieterSelect" class="block text-sm font-medium text-gray-700">Anbieter (Auswahl)</label>
-                                    <select id="anbieterSelect" name="anbieterSelect" required onchange="toggleFreeText(null)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border bg-white">
-                                        <option value="" disabled selected>Wählen Sie einen Anbieter...</option>
-                                        <option value="o2">o2</option>
-                                        <option value="HeTec">HeTec</option>
-                                        <option value="GreenMnky">GreenMnky</option>
-                                        <option value="Freiertext">Andere / Freier Text</option>
-                                    </select>
-                                </div>
-
-                                <!-- Freitextfeld (optional) -->
-                                <div id="anbieter-freitext-container" class="hidden">
-                                    <label for="anbieterFreiertext" class="block text-sm font-medium text-gray-700">Anbieter (Freier Text)</label>
-                                    <input type="text" id="anbieterFreiertext" name="anbieterFreiertext" placeholder="Geben Sie den Anbieternamen ein" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                                </div>
-                                
-                                <div>
-                                    <label for="geraetebezeichnung" class="block text-sm font-medium text-gray-700">Gerätebezeichnung</label>
-                                    <input type="text" id="geraetebezeichnung" name="geraetebezeichnung" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                                </div>
-                                <div>
-                                    <label for="aktionsbeginn" class="block text-sm font-medium text-gray-700">Aktionsbeginn</label>
-                                    <input type="date" id="aktionsbeginn" name="aktionsbeginn" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                                </div>
-                                <div>
-                                    <label for="aktionsende" class="block text-sm font-medium text-gray-700">Aktionsende</label>
-                                    <input type="date" id="aktionsende" name="aktionsende" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                                </div>
-                            </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700">Bilder</label>
+                            <div id="bundle-images-container"></div>
+                            <button type="button" onclick="addBundleImageField()" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">+ Bild</button>
                         </div>
-
-                        <!-- 2. Preis- und Margendaten -->
-                        <div class="col-span-3 border-b pb-4 mb-4">
-                            <h3 class="text-xl font-semibold text-blue-600 mb-3">Preise & Marge</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                
-                                <!-- EINKAUFSPREIS MIT CHECKBOX -->
-                                <div>
-                                    <label for="einkaufspreis" class="block text-sm font-medium text-gray-700">Einkaufspreis (€)</label>
-                                    <div class="mt-1 flex items-center gap-2">
-                                        <input type="number" step="0.01" id="einkaufspreis" name="einkaufspreis" required class="block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                                        <div class="flex flex-col items-center">
-                                            <input type="checkbox" id="noEinkaufspreis" name="noEinkaufspreis" onchange="togglePriceInput('EK', this.checked)" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                            <label for="noEinkaufspreis" class="text-[10px] text-gray-500">n.v.</label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- VERKAUFSPREIS MIT CHECKBOX -->
-                                <div>
-                                    <label for="verkaufspreis" class="block text-sm font-medium text-gray-700">Verkaufspreis (€)</label>
-                                    <div class="mt-1 flex items-center gap-2">
-                                        <input type="number" step="0.01" id="verkaufspreis" name="verkaufspreis" required class="block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                                        <div class="flex flex-col items-center">
-                                            <input type="checkbox" id="noVerkaufspreis" name="noVerkaufspreis" onchange="togglePriceInput('VK', this.checked)" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                            <label for="noVerkaufspreis" class="text-[10px] text-gray-500">n.v.</label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="flex items-end">
-                                    <p id="marge-preview" class="font-semibold text-lg"></p>
-                                </div>
-                            </div>
-                            
-                            <!-- Strukturierte Einmalzahlung Mobile -->
-                            <div class="mt-4 col-span-3">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Einmalzahlung (o2 Mobile XL/L/M/S)</label>
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <div>
-                                        <label for="einmalzahlungXL" class="block text-xs font-medium text-gray-500">XL (€)</label>
-                                        <input type="text" id="einmalzahlungXL" name="einmalzahlungXL" placeholder="z.B. 1€" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border text-sm">
-                                    </div>
-                                    <div>
-                                        <label for="einmalzahlungL" class="block text-xs font-medium text-gray-500">L (€)</label>
-                                        <input type="text" id="einmalzahlungL" name="einmalzahlungL" placeholder="z.B. 29,99€" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border text-sm">
-                                    </div>
-                                    <div>
-                                        <label for="einmalzahlungM" class="block text-xs font-medium text-gray-500">M (€)</label>
-                                        <input type="text" id="einmalzahlungM" name="einmalzahlungM" placeholder="z.B. 49,99€" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border text-sm">
-                                    </div>
-                                    <div>
-                                        <label for="einmalzahlungS" class="block text-xs font-medium text-gray-500">S (€)</label>
-                                        <input type="text" id="einmalzahlungS" name="einmalzahlungS" placeholder="z.B. 99,99€" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border text-sm">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Strukturierte Einmalzahlung Home -->
-                            <div class="mt-4 col-span-3">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Einmalzahlung (o2 My Home XL/L/M/S)</label>
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <div>
-                                        <label for="einmalzahlungHomeXL" class="block text-xs font-medium text-gray-500">Home XL (€)</label>
-                                        <input type="text" id="einmalzahlungHomeXL" name="einmalzahlungHomeXL" placeholder="z.B. 1€" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border text-sm">
-                                    </div>
-                                    <div>
-                                        <label for="einmalzahlungHomeL" class="block text-xs font-medium text-gray-500">Home L (€)</label>
-                                        <input type="text" id="einmalzahlungHomeL" name="einmalzahlungHomeL" placeholder="z.b. 29,99€" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border text-sm">
-                                    </div>
-                                    <div>
-                                        <label for="einmalzahlungHomeM" class="block text-xs font-medium text-gray-500">Home M (€)</label>
-                                        <input type="text" id="einmalzahlungHomeM" name="einmalzahlungHomeM" placeholder="z.B. 49,99€" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border text-sm">
-                                    </div>
-                                    <div>
-                                        <label for="einmalzahlungHomeS" class="block text-xs font-medium text-gray-500">Home S (€)</label>
-                                        <input type="text" id="einmalzahlungHomeS" name="einmalzahlungHomeS" placeholder="z.B. 99,99€" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border text-sm">
-                                    </div>
-                                </div>
-                            </div>
-
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700">Beschreibung</label>
+                            <textarea name="rechnungsweg" rows="3" class="w-full border rounded p-2" required></textarea>
                         </div>
-
-                        <!-- 3. Tarif-Gültigkeit -->
-                        <div class="col-span-3 border-b pb-4 mb-4">
-                            <h3 class="text-xl font-semibold text-blue-600 mb-3">Tarif-Gültigkeit</h3>
-                            <div class="flex flex-wrap gap-6">
-                                <div class="flex items-center">
-                                    <input id="mobile" name="mobile" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                    <label for="mobile" class="ml-2 block text-sm text-gray-700">o2 Mobile (XL/L/M/S)</label>
-                                </div>
-                                <div class="flex items-center">
-                                    <input id="myhome" name="myhome" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                    <label for="myhome" class="ml-2 block text-sm text-gray-700">o2 My Home (XL/L/M/S)</label>
-                                </div>
-                                <div class="flex items-center">
-                                    <input id="data" name="data" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                    <label for="data" class="ml-2 block text-sm text-gray-700">o2 Data (XL/L/M)</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 4. Sonstiges -->
-                        <div class="col-span-3 border-b pb-4 mb-4">
-                            <h3 class="text-xl font-semibold text-blue-600 mb-3">Zusätzliche Infos</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div class="flex items-center">
-                                    <input id="anschlussbefreiung" name="anschlussbefreiung" type="checkbox" class="h-4 w-4 text-pink-600 border-gray-300 rounded">
-                                    <label for="anschlussbefreiung" class="ml-2 block text-sm text-gray-700">Anschlusspreisbefreiung</label>
-                                </div>
-                                <div class="flex items-center">
-                                    <input id="zusatzpush" name="zusatzpush" type="checkbox" class="h-4 w-4 text-pink-600 border-gray-300 rounded">
-                                    <label for="zusatzpush" class="ml-2 block text-sm text-gray-700">Zusätzlichen Push</label>
-                                </div>
-                                <div>
-                                    <label for="sonderprovision" class="block text-sm font-medium text-gray-700">Sonderprovision</label>
-                                    <input type="text" id="sonderprovision" name="sonderprovision" placeholder="z.B. +50€" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                                </div>
-                            </div>
-                            <div class="mt-4">
-                                <label for="bemerkung" class="block text-sm font-medium text-gray-700">Bemerkungsfeld</label>
-                                <textarea id="bemerkung" name="bemerkung" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"></textarea>
-                            </div>
-                        </div>
-                        
-                        <!-- 5. Bild und Links -->
-                        <div class="col-span-3">
-                            <h3 class="text-xl font-semibold text-blue-600 mb-3">Bilder & Benefits (URLs)</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                    <label for="bildUrl" class="block text-sm font-medium text-gray-700">Bild URL (Gerät)</label>
-                                    <input type="url" id="bildUrl" name="bildUrl" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                                </div>
-                                <div>
-                                    <label for="hwBenefit24" class="block text-sm font-medium text-gray-700">HW Benefit 24 Monate (Link)</label>
-                                    <input type="url" id="hwBenefit24" name="hwBenefit24" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                                </div>
-                                <div>
-                                    <label for="hwBenefit36" class="block text-sm font-medium text-gray-700">HW Benefit 36 Monate (Link)</label>
-                                    <input type="url" id="hwBenefit36" name="hwBenefit36" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                                </div>
-                            </div>
-                        </div>
-                        
+                        <div><label class="block text-sm font-medium text-gray-700">Start</label><input type="date" name="start" class="w-full border rounded p-2" required></div>
+                        <div><label class="block text-sm font-medium text-gray-700">Ende</label><input type="date" name="end" class="w-full border rounded p-2" required></div>
+                        <div><label class="block text-sm font-medium text-gray-700">Link</label><input type="url" name="shopLink" class="w-full border rounded p-2"></div>
+                        <div><label class="block text-sm font-medium text-gray-700">Gutscheincode</label><input type="text" name="gutscheincode" class="w-full border rounded p-2"></div>
                     </div>
-                    
-                    <!-- Speichern Button -->
-                    <div class="mt-8">
-                        <button id="submit-btn" type="submit" class="w-full py-3 px-4 border border-transparent rounded-lg shadow-lg text-lg font-medium text-white bg-blue-700 hover:bg-blue-800 focus:outline-none transition duration-150">
-                            Aktion Speichern
-                        </button>
-                    </div>
+                    <button type="submit" id="form-submit-btn" class="mt-4 w-full bg-blue-700 text-white py-2 rounded hover:bg-blue-800 font-bold">Speichern</button>
                 </form>
             </div>
-
-            <h2 class="text-2xl font-bold text-gray-800 border-b pb-2 mt-10">Verwaltung bestehender Geräte-Aktionen</h2>
-            
-            <!-- Filter und Suchfeld -->
-            <div id="admin-search-container" class="mb-4">
-                <input type="text" id="admin-search" placeholder="Suche nach Gerät oder Anbieter..." class="w-full p-2 border rounded shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" oninput="filterAdminPromotions()">
-            </div>
-            
-            <!-- Liste der Aktionen -->
-            <div id="admin-promotion-list" class="space-y-4">
-                <div class="text-center text-gray-500 p-4">Lade Aktionen...</div>
-            </div>
-
-            <!-- PDF Upload Section -->
-            <div id="pdf-upload-section" class="mt-12 pt-6 border-t-2 border-gray-300">
-                <h3 class="text-xl font-bold text-gray-800 mb-4">PDF Aktionsübersicht verwalten</h3>
-                <div class="bg-white p-6 rounded-xl shadow-lg flex items-center justify-between">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Aktuelle o2 Übersicht hochladen (PDF)</label>
-                        <input type="file" id="pdf-upload-input" accept="application/pdf" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" onchange="handlePdfUpload(event)">
-                        <p id="pdf-status-label" class="text-xs text-gray-500 mt-2">Kein PDF ausgewählt</p>
-                    </div>
-                    <button onclick="deletePdf()" class="bg-red-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-600">PDF Löschen</button>
-                </div>
-                <!-- Admin Vorschau -->
-                <div id="admin-pdf-preview" class="mt-6"></div>
-            </div>
-            
-            <!-- DATEN BACKUP SECTION (NEU) -->
-            <div id="data-backup-section" class="mt-12 pt-6 border-t-2 border-gray-300">
-                <h3 class="text-xl font-bold text-yellow-600 mb-4">💾 Daten-Backup & Wiederherstellung</h3>
-                <div class="bg-white p-6 rounded-xl shadow-lg space-y-4">
-                    <!-- Export -->
-                    <div class="flex justify-between items-center">
-                        <p class="text-sm text-gray-700">Sichern Sie alle eingegebenen Aktionen als JSON-Datei.</p>
-                        <button onclick="exportData()" class="bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-yellow-600 transition">
-                            Daten exportieren (JSON)
-                        </button>
-                    </div>
-                    
-                    <!-- Import -->
-                    <div class="border-t pt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
-                        <label class="block text-sm font-medium text-gray-700">Daten wiederherstellen (Import)</label>
-                        <input type="file" id="import-input" accept="application/json" class="block w-full sm:w-auto text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200" onchange="importData(event)">
-                    </div>
-                </div>
-            </div>
-
-
-            <!-- INCENTIVES VERWALTUNG (Jetzt unten) -->
-            <div class="space-y-6 pt-10 border-t-2 border-gray-300 mt-12">
-                <h3 class="text-xl font-bold text-purple-700">Incentive Verwaltung</h3>
-                <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <form id="incentive-form" onsubmit="saveIncentive(event)" data-editing-id="">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Titel (NEU) -->
-                            <div class="md:col-span-2">
-                                <label for="incentiveTitel" class="block text-sm font-medium text-gray-700">Titel / Bezeichnung</label>
-                                <input type="text" id="incentiveTitel" name="incentiveTitel" placeholder="z.B. Xiaomi Watch Aktion" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border" required>
-                            </div>
-
-                            <!-- Start / Ende -->
-                            <div>
-                                <label for="incentiveStart" class="block text-sm font-medium text-gray-700">Incentive Start</label>
-                                <input type="date" id="incentiveStart" name="incentiveStart" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                            </div>
-                            <div>
-                                <label for="incentiveEnd" class="block text-sm font-medium text-gray-700">Incentive Ende</label>
-                                <input type="date" id="incentiveEnd" name="incentiveEnd" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                            </div>
-                            
-                            <!-- Bild Link (Prio entfernt) -->
-                            <div class="md:col-span-2">
-                                <label for="incentiveBildUrl" class="block text-sm font-medium text-gray-700">Bild URL</label>
-                                <input type="url" id="incentiveBildUrl" name="incentiveBildUrl" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                            </div>
-                            
-                            <!-- Bemerkungsfeld -->
-                            <div class="md:col-span-2">
-                                <label for="incentiveBemerkung" class="block text-sm font-medium text-gray-700">Bemerkung</label>
-                                <textarea id="incentiveBemerkung" name="incentiveBemerkung" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border" required></textarea>
-                            </div>
-
-                        </div>
-                        <div class="mt-6">
-                            <button id="incentive-submit-btn" type="submit" class="w-full py-3 px-4 border border-transparent rounded-lg shadow-lg text-lg font-medium text-white bg-purple-700 hover:bg-purple-800 focus:outline-none transition duration-150">
-                                Incentive Speichern
-                            </button>
-                        </div>
-                    </form>
-                </div>
-                
-                <h4 class="text-lg font-bold text-gray-800">Bestehende Incentives</h4>
-                <div id="admin-incentive-list" class="space-y-4">
-                    <div class="text-center text-gray-500 p-4">Lade Incentives...</div>
-                </div>
-            </div>
-
-        </section>
-
-
-        <!-- 2. BENUTZER-ANSICHT (Kundenansicht) -->
-        <section id="user-view" class="hidden">
-            <div class="flex flex-col md:flex-row justify-between items-center mb-6">
-                <h2 class="text-3xl font-extrabold text-gray-900">Aktionen und Incentives</h2>
-                <!-- NEU: Suchfeld -->
-                <div id="user-search-container" class="mt-4 md:mt-0 w-full md:w-1/3">
-                     <input type="text" id="user-search" placeholder="🔍 Suche (Gerät, Tarif, Incentive)..." 
-                            class="w-full p-3 border border-gray-300 rounded-full shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                            oninput="handleUserSearch()">
-                </div>
-            </div>
-            
-            <!-- PUSH PROVISION DISPLAY (NEU GANZ OBEN, GRID LAYOUT) -->
-             <div class="mb-8 hidden">
-                <h3 class="text-2xl font-bold text-green-700 mb-4 border-b pb-2">💰 Push Provisionen</h3>
-                <div id="user-push-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <!-- Wird per JS gefüllt -->
-                </div>
-            </div>
-
-            <!-- Incentive-Übersicht (Prio entfernt) -->
-            <div class="mb-12">
-                <h3 class="text-2xl font-bold text-purple-700 mb-4 border-b pb-2">⭐ Top Incentives</h3>
-                <div id="user-incentive-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <p class="text-center text-gray-500 p-4 col-span-full">Lade Incentives...</p>
-                </div>
-            </div>
-            
-            <!-- Überschrift Geräte-Aktionen (Beginnt auf Seite 2) -->
-            <!-- WICHTIG: Die ID "device-actions-header" sorgt für den Seitenumbruch im Druck -->
-            <h3 id="device-actions-header" class="text-2xl font-bold text-blue-700 mb-6 border-b pb-2">Geräte-Aktionen</h3>
-            
-            <!-- Inhaltsangabe Promotions (Beginnt auf Seite 2) -->
-            <div id="toc-container">
-                <div class="text-center text-gray-500 p-4">Lade Inhaltsangabe...</div>
-            </div>
-
-            <!-- BUNDLES ANZEIGE (VERSCHOBEN NACH UNTEN) -->
-            <div class="mb-12 hidden" id="bundle-section-header">
-                <h3 class="text-2xl font-bold text-blue-900 mb-4 border-b pb-2">📦 o2 Bundle Angebote</h3>
-                <div id="user-bundle-list" class="">
-                    <!-- Wird per JS gefüllt -->
-                </div>
-            </div>
-
-            <!-- Gruppierter Inhalt (Promotions) (Beginnt auf Seite 3) -->
-            <div id="user-view-content">
-                <div class="text-center text-gray-500 p-4">Lade Aktionen...</div>
-            </div>
-
-            <!-- PDF Container User View -->
-            <div id="user-pdf-container" class="mt-16">
-                <!-- PDF wird hier gerendert -->
+            <div class="bg-white p-6 rounded-xl shadow">
+                <h3 class="text-lg font-bold mb-4 text-gray-700">Vorhandene Bundles</h3>
+                <div id="admin-list"></div>
             </div>
         </section>
 
+        <section id="user-view">
+            <div id="user-grid" class="grid grid-cols-1 gap-6"></div>
+        </section>
     </div>
 </body>
 </html>
