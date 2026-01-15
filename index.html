@@ -45,29 +45,36 @@
 
         // === AUTO-IMPORT: Screenshot -> postMessage an parent (Dashboard) ===
         async function sendBundleScreenshotToParent() {
-            try {
-                if (typeof html2canvas !== 'function') {
-                    console.warn("html2canvas nicht verfügbar – Screenshot kann nicht erzeugt werden.");
-                    return;
-                }
-                // Besser als document.body: nur der eigentliche Inhalt
-                const target = document.querySelector('.max-w-5xl') || document.body;
-                const canvas = await html2canvas(target, {
-                    scale: 1.5,
-                    useCORS: true,
-                    backgroundColor: '#ffffff',
-                    logging: false
-                });
-                const dataUrl = canvas.toDataURL('image/png');
+    try {
+        if (typeof html2canvas !== 'function') return;
 
-                window.parent.postMessage({
-                    type: 'BUNDLE_SCREENSHOT',
-                    dataUrl
-                }, '*');
-            } catch (err) {
-                console.warn("Screenshot failed:", err);
-            }
-        }
+        // Wir wählen das Element aus, das fotografiert werden soll
+        const target = document.querySelector('.max-w-5xl') || document.body;
+
+        const canvas = await html2canvas(target, {
+            scale: 3,                    // Höhere Skalierung für extreme Schärfe
+            useCORS: true,               // Wichtig für Bilder von GitHub
+            backgroundColor: "#ffffff",  // ERZWINGT weiß (entfernt den milchigen Schleier)
+            logging: false,
+            letterRendering: true,
+            allowTaint: false,
+            imageTimeout: 15000          // Gibt Bildern Zeit zu laden
+        });
+
+        // Wir wandeln es in ein hochwertiges PNG um
+        const dataUrl = canvas.toDataURL('image/png', 1.0);
+
+        // Senden an das Hauptfenster
+        window.parent.postMessage({
+            type: 'BUNDLE_SCREENSHOT',
+            dataUrl: dataUrl
+        }, '*');
+
+        console.log("Screenshot mit hoher Sättigung gesendet!");
+    } catch (err) {
+        console.error("Fehler beim Erstellen des Screenshots:", err);
+    }
+}
 
         // Antwortet auf REQUEST_BUNDLE_SCREENSHOT vom iFrame-Parent (Dashboard)
         window.addEventListener('message', (e) => {
