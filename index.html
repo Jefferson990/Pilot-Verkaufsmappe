@@ -42,42 +42,36 @@
         const STORAGE_KEY = 'o2_standalone_bundles_data';
         let bundles = [];
 
-        // === AUTO-IMPORT: Send SHARP data to parent (Dashboard) ===
-
-// Funktion zum Senden der scharfen Daten
-function sendBundleDataToParent() {
-    const card = document.querySelector('#user-view .max-w-5xl') || document.querySelector('.max-w-5xl');
-    if (!card) {
-        console.error("Bundle-Karte nicht gefunden!");
-        return;
-    }
+        // === AUTO-IMPORT: Screenshot -> postMessage an parent (Dashboard) ===
+        function sendBundleDataToParent() {
+    // 1. Die Daten aus der Karte auslesen
+    const card = document.querySelector('.max-w-5xl'); // Der Container der Karte
+    if (!card) return;
 
     const bundleData = {
         type: 'BUNDLE_DATA_TRANSFER',
-        // Keep compatibility with dashboard (bezeichnung/artikelName)
         bezeichnung: card.querySelector('h2')?.innerText || "Bundle",
         artikelName: card.querySelector('.text-3xl')?.innerText || "Produkt",
         preis: card.querySelector('.text-5xl')?.innerText || "0,00 €",
         detailsHTML: card.querySelector('.space-y-2')?.innerHTML || "",
+        // Den Bild-Link extrahieren
         bildUrl: card.querySelector('img')?.src || ""
     };
 
+    // 2. Daten per PostMessage senden
     window.parent.postMessage(bundleData, '*');
-    console.log("Daten statt Screenshot gesendet:", bundleData);
+    console.log("Daten statt Bild gesendet:", bundleData);
 }
 
-// Höre auf Anfragen vom Dashboard
-window.addEventListener('message', (e) => {
-    const d = e.data || {};
-    // Egal ob das Dashboard nach 'REQUEST_BUNDLE_SCREENSHOT' fragt,
-    // wir antworten jetzt IMMER mit den scharfen Daten!
-    if (d.type === 'REQUEST_BUNDLE_SCREENSHOT' || d.type === 'GET_DATA') {
-        sendBundleDataToParent();
-    }
-});
 
-// === /AUTO-IMPORT ===
-
+        // Antwortet auf REQUEST_BUNDLE_SCREENSHOT vom iFrame-Parent (Dashboard)
+        window.addEventListener('message', (e) => {
+            const d = e.data || {};
+            if (d && d.type === 'REQUEST_BUNDLE_SCREENSHOT') {
+                sendBundleDataToParent();
+            }
+        });
+        // === /AUTO-IMPORT ===
  
 
         const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
