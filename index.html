@@ -48,14 +48,71 @@
     const card = document.querySelector('.max-w-5xl'); // Der Container der Karte
     if (!card) return;
 
+    const pickTopImages = (root, maxCount=2) => {
+        const imgs = Array.from(root.querySelectorAll('img'))
+            .filter(img => img && (img.getAttribute('src') || img.src) && img.getBoundingClientRect().width > 60 && img.getBoundingClientRect().height > 60);
+        // sort by rendered area desc
+        imgs.sort((a,b) => (b.getBoundingClientRect().width*b.getBoundingClientRect().height) - (a.getBoundingClientRect().width*a.getBoundingClientRect().height));
+        const seen = new Set();
+        const out = [];
+        for (const img of imgs) {
+            const raw = img.getAttribute('src') || img.src;
+            const src = raw ? new URL(raw, window.location.href).href : '';
+            if (!src || seen.has(src)) continue;
+            seen.add(src);
+            out.push(src);
+            if (out.length >= maxCount) break;
+        }
+        return out;
+    };
+
+    const extractBadges = (root) => {
+        const spans = Array.from(root.querySelectorAll('span, a, div'))
+            .filter(el => el && el.textContent && el.textContent.trim().length >= 2 && el.textContent.trim().length <= 24);
+        const out = [];
+        const seen = new Set();
+        for (const el of spans) {
+            const t = el.textContent.trim();
+            if (t.includes('€')) continue;
+            if (/^Bis:\s*\d{4}-\d{2}-\d{2}/.test(t)) continue;
+            if (t.length < 2 || t.length > 24) continue;
+            // Heuristik: Pills sind oft inline-flex/rounded
+            const cls = (el.getAttribute('class') || '');
+            if (!(cls.includes('rounded') || cls.includes('pill') || cls.includes('badge') || cls.includes('px-'))) continue;
+            if (seen.has(t)) continue;
+            seen.add(t);
+            out.push(t);
+            if (out.length >= 6) break;
+        }
+        return out;
+    };
+
+    const textAll = card.innerText || '';
+    const validMatch = textAll.match(/Bis:\s*(\d{4}-\d{2}-\d{2})/);
+    const validUntil = validMatch ? validMatch[1] : '';
+
+    const images = pickTopImages(card, 2);
+    const badges = extractBadges(card);
+
     const bundleData = {
         type: 'BUNDLE_DATA_TRANSFER',
+        // Header / Titel
+        titel: card.querySelector('h1, h2, h3')?.innerText?.trim() || "Bundle",
+        // Tarif / Plan
+        tarifName: card.querySelector('.text-3xl')?.innerText?.trim() || "",
+        // Preis
+        preis: card.querySelector('.text-5xl')?.innerText?.trim() || "0,00 €",
+        // Details-Box (HTML)
+        detailsHTML: card.querySelector('.space-y-2')?.innerHTML || "",
+        // Badges & Gültigkeit
+        badges: badges,
+        validUntil: validUntil,
+        // Bilder (bis zu 2)
+        images: images,
+        // Backward-Compat Felder
         bezeichnung: card.querySelector('h2')?.innerText || "Bundle",
         artikelName: card.querySelector('.text-3xl')?.innerText || "Produkt",
-        preis: card.querySelector('.text-5xl')?.innerText || "0,00 €",
-        detailsHTML: card.querySelector('.space-y-2')?.innerHTML || "",
-        // Den Bild-Link extrahieren
-        bildUrl: card.querySelector('img')?.src || ""
+        bildUrl: images[0] || ""
     };
 
     // 2. Daten per PostMessage senden
