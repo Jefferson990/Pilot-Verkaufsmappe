@@ -43,21 +43,35 @@
         let bundles = [];
 
         // === AUTO-IMPORT: Screenshot -> postMessage an parent (Dashboard) ===
-        function sendBundleDataToParent() {
-    // 1. Die Daten aus der Karte auslesen
-    const card = document.querySelector('.max-w-5xl'); // Der Container der Karte
+        async function sendBundleDataToParent() {
+    // 1) Karte im User-View finden
+    const card = document.querySelector('.max-w-5xl');
     if (!card) return;
 
-    const pickTopImages = (root, maxCount=2) => {
-        const imgs = Array.from(root.querySelectorAll('img'))
-            .filter(img => img && (img.getAttribute('src') || img.src) && img.getBoundingClientRect().width > 60 && img.getBoundingClientRect().height > 60);
-        // sort by rendered area desc
-        imgs.sort((a,b) => (b.getBoundingClientRect().width*b.getBoundingClientRect().height) - (a.getBoundingClientRect().width*a.getBoundingClientRect().height));
+    const absUrl = (raw) => {
+        try {
+            if (!raw) return '';
+            return new URL(raw, window.location.href).href;
+        } catch (e) {
+            return raw || '';
+        }
+    };
+
+    const pickTopImages = (root, maxCount = 2) => {
+        const imgs = Array.from(root.querySelectorAll('img')).filter(img => {
+            if (!img) return false;
+            const r = img.getBoundingClientRect();
+            // kleine Icons raus
+            return (r.width > 80 && r.height > 80);
+        });
+
+        imgs.sort((a, b) => (b.getBoundingClientRect().width * b.getBoundingClientRect().height) - (a.getBoundingClientRect().width * a.getBoundingClientRect().height));
+
         const seen = new Set();
         const out = [];
         for (const img of imgs) {
-            const raw = img.getAttribute('src') || img.src;
-            const src = raw ? new URL(raw, window.location.href).href : '';
+            const raw = img.currentSrc || img.getAttribute('src') || img.getAttribute('data-src') || img.src || '';
+            const src = absUrl(raw);
             if (!src || seen.has(src)) continue;
             seen.add(src);
             out.push(src);
@@ -66,17 +80,56 @@
         return out;
     };
 
+    const downscaleToDataUrl = (src, maxSize = 520) => new Promise((resolve) => {
+        try {
+            if (!src) return resolve('');
+            // Wenn schon data:, lassen wir es – aber wir verkleinern große Daten-URLs trotzdem
+            const img = new Image();
+            // CORS nur als Versuch – wenn es blockiert, nehmen wir original
+            if (!src.startsWith('data:')) img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                try {
+                    const w = img.naturalWidth || img.width;
+                    const h = img.naturalHeight || img.height;
+                    if (!w || !h) return resolve(src);
+
+                    const scale = Math.min(1, maxSize / Math.max(w, h));
+                    if (scale >= 0.999) return resolve(src);
+
+                    const cw = Math.max(1, Math.round(w * scale));
+                    const ch = Math.max(1, Math.round(h * scale));
+                    const canvas = document.createElement('canvas');
+                    canvas.width = cw;
+                    canvas.height = ch;
+                    const ctx = canvas.getContext('2d');
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                    ctx.clearRect(0, 0, cw, ch);
+                    ctx.drawImage(img, 0, 0, cw, ch);
+
+                    // JPEG: stabil & kleiner
+                    resolve(canvas.toDataURL('image/jpeg', 0.88));
+                } catch (e) {
+                    resolve(src);
+                }
+            };
+            img.onerror = () => resolve(src);
+            img.src = src;
+        } catch (e) {
+            resolve(src);
+        }
+    });
+
     const extractBadges = (root) => {
-        const spans = Array.from(root.querySelectorAll('span, a, div'))
-            .filter(el => el && el.textContent && el.textContent.trim().length >= 2 && el.textContent.trim().length <= 24);
+        const candidates = Array.from(root.querySelectorAll('span, a, div')).filter(el => el && el.textContent);
         const out = [];
         const seen = new Set();
-        for (const el of spans) {
-            const t = el.textContent.trim();
+        for (const el of candidates) {
+            const t = (el.textContent || '').trim();
+            if (!t) continue;
             if (t.includes('€')) continue;
             if (/^Bis:\s*\d{4}-\d{2}-\d{2}/.test(t)) continue;
-            if (t.length < 2 || t.length > 24) continue;
-            // Heuristik: Pills sind oft inline-flex/rounded
+            if (t.length < 2 || t.length > 28) continue;
             const cls = (el.getAttribute('class') || '');
             if (!(cls.includes('rounded') || cls.includes('pill') || cls.includes('badge') || cls.includes('px-'))) continue;
             if (seen.has(t)) continue;
@@ -91,34 +144,44 @@
     const validMatch = textAll.match(/Bis:\s*(\d{4}-\d{2}-\d{2})/);
     const validUntil = validMatch ? validMatch[1] : '';
 
-    const images = pickTopImages(card, 2);
+    // === PREIS: Hauptpreis (rotes Preis-Kästchen) priorisieren ===
+    const priceEl = card.querySelector(
+        '.bg-red-600 .text-3xl, .bg-red-500 .text-3xl, .bg-red-600 .text-4xl, .bg-red-500 .text-4xl, .text-3xl.font-extrabold.whitespace-nowrap'
+    );
+    let preis = (priceEl?.innerText || '').trim();
+    if (!preis) {
+        // Fallback: erstes Vorkommen einer Euro-Zahl
+        const m = textAll.match(/\b\d{1,3}(?:\.\d{3})*,\d{2}\s*€?/);
+        preis = m ? m[0].trim() : '0,00 €';
+    }
+    if (!preis.includes('€')) preis = preis + ' €';
+
+    // === Bilder: größte 2 nehmen und ggf. verkleinern ===
+    const rawImages = pickTopImages(card, 2);
+    const images = (await Promise.all(rawImages.map(s => downscaleToDataUrl(s, 520)))).filter(Boolean);
+
     const badges = extractBadges(card);
 
     const bundleData = {
         type: 'BUNDLE_DATA_TRANSFER',
-        // Header / Titel
-        titel: card.querySelector('h1, h2, h3')?.innerText?.trim() || "Bundle",
-        // Tarif / Plan
-        tarifName: card.querySelector('.text-3xl')?.innerText?.trim() || "",
-        // Preis
-        preis: card.querySelector('.text-5xl')?.innerText?.trim() || "0,00 €",
-        // Details-Box (HTML)
-        detailsHTML: card.querySelector('.space-y-2')?.innerHTML || "",
-        // Badges & Gültigkeit
+        titel: card.querySelector('h1, h2, h3')?.innerText?.trim() || 'Bundle',
+        tarifName: card.querySelector('.text-3xl')?.innerText?.trim() || '',
+        preis: preis,
+        detailsHTML: card.querySelector('.space-y-2')?.innerHTML || '',
         badges: badges,
         validUntil: validUntil,
-        // Bilder (bis zu 2)
         images: images,
+
         // Backward-Compat Felder
-        bezeichnung: card.querySelector('h2')?.innerText || "Bundle",
-        artikelName: card.querySelector('.text-3xl')?.innerText || "Produkt",
-        bildUrl: images[0] || ""
+        bezeichnung: card.querySelector('h2')?.innerText || 'Bundle',
+        artikelName: card.querySelector('.text-3xl')?.innerText || 'Produkt',
+        bildUrl: images[0] || ''
     };
 
-    // 2. Daten per PostMessage senden
     window.parent.postMessage(bundleData, '*');
-    console.log("Daten statt Bild gesendet:", bundleData);
+    console.log('Daten (Preis+Images optimiert) gesendet:', bundleData);
 }
+
 
 
         // Antwortet auf REQUEST_BUNDLE_SCREENSHOT vom iFrame-Parent (Dashboard)
